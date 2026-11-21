@@ -5,6 +5,48 @@ namespace PanoramaScreenMonitor;
 
 internal static class SelfTest
 {
+    private sealed class UsbSimulation : IUsbScreenTransport
+    {
+        internal volatile UsbInventory Inventory = UsbInventory.Empty;
+        internal volatile bool Online = true;
+        internal volatile bool Journal = true;
+        internal volatile bool Compatible = true;
+        internal volatile TaskCompletionSource? HoldWrite;
+        internal volatile bool TriedWrite;
+        internal readonly List<(string Key, bool Target)> Writes = [];
+        internal int Checks;
+        private UsbCandidate? selected;
+
+        public long? Session() => Online ? 1 : null;
+        public UsbInventory Discover() => Inventory;
+        public bool HasJournal() => Journal;
+        public void Bind(UsbCandidate? candidate) => selected = candidate;
+
+        public Task<Compatibility> CheckAsync(CancellationToken token)
+        {
+            var device = selected ?? throw new InvalidOperationException("No selected device");
+            Interlocked.Increment(ref Checks);
+            var info = new DeviceInfo(Compatible ? device.Profile.Products[0] : "TURRIS", "firmware", "app", "Linux");
+            var config = Protocol.Parse("display_config { backlight_enable: true backlight_brightness: 80 }");
+            return Task.FromResult(PanoramaTransport.Assess(device.Profile, info, config));
+        }
+
+        public Task<DeviceInfo> ReadDeviceInfoAsync(CancellationToken token) =>
+            throw new InvalidOperationException("USB diagnostics use the compatibility check.");
+
+        public async Task<Transition> ApplyAsync(bool? target, Func<bool> mayWrite, CancellationToken token,
+            uint? brightness = null)
+        {
+            var device = selected ?? throw new InvalidOperationException("No selected device");
+            if (target is null) return new(true, null, 80);
+            TriedWrite = true;
+            if (HoldWrite is { } hold) await hold.Task.WaitAsync(token);
+            if (!mayWrite()) return new(true, null, 80);
+            Writes.Add((device.Key, target.Value));
+            return new(target.Value, null, 80);
+        }
+    }
+
     private sealed class Simulation : IScreenTransport
     {
         internal long? Udb;
@@ -60,6 +102,7 @@ internal static class SelfTest
                     await CheckControllerAsync();
                     await CheckWindowsTimeoutAsync();
                     await CheckBrightnessAndDiagnosticsAsync();
+                    await CheckUsbCompatibilityAsync();
                 }
                 catch (Exception ex) { failure = ex; }
                 finally { frame.Continue = false; }
@@ -69,7 +112,8 @@ internal static class SelfTest
             File.WriteAllText(report, "PASS: wire framing, full configuration, UDB log correlation/rotation/timeout, "
                 + "contradictory ACK, waiting for KANALI, active startup, pause/manual mode, "
                 + "idle/input race before and after OFF, KANALI restart, live Windows timeout changes, Never, "
-                + "brightness coalescing and confirmation timeout, DeviceInfo initial/reconnect/refresh, localization.\n"
+                + "brightness coalescing and confirmation timeout, DeviceInfo initial/reconnect/refresh, localization, "
+                + "nine USB profiles, missing USBPRINT, write gating, per-device opt-in, multi-device selection and USB/UDB loss.\n"
                 + $"Current Windows display timeout (seconds): {WindowsDisplayTimeout.ReadSeconds()?.ToString() ?? "unavailable"}");
             return 0;
         }
@@ -278,6 +322,90 @@ internal static class SelfTest
             await Eventually(() => transport.InfoReads > infoReads && !controller.Busy && !controller.InfoStale);
         }
         finally { await controller.StopAsync(); }
+    }
+
+    private static async Task CheckUsbCompatibilityAsync()
+    {
+        static string PathFor(string id, string instance, string interfaceClass = "printing") =>
+            $@"\\?\usb#vid_{id[..4]}&pid_{id[5..]}#{instance}#{{{interfaceClass}}}";
+
+        var paths = UsbProfiles.All.Select(profile => PathFor(profile.Id, "test")).ToArray();
+        var classified = UsbProfiles.Classify(paths.Append(PathFor("391A:2011", "outside")),
+            [PathFor("391A:1021", "no-print", "generic"), PathFor("1234:1011", "outside")]);
+        Require(classified.Candidates.Length == 9 && classified.Unknown.SequenceEqual(["391A:2011"])
+            && classified.MissingPrinter.SequenceEqual(["391A:1021"]), "VID and PID allowlist with USBPRINT");
+        var verified = Protocol.Parse("display_config { backlight_enable: true backlight_brightness: 80 }");
+        foreach (var item in classified.Candidates)
+        {
+            var info = new DeviceInfo(item.Profile.Products[0], "firmware", null, null);
+            Require(PanoramaTransport.Assess(item.Profile, info, verified).CanControl, "Expected profile admits compatible readback");
+            var unknown = Protocol.Parse("display_config { backlight_enable: true unknown: 42 }");
+            Require(!PanoramaTransport.Assess(item.Profile, info, unknown).CanControl, "Unknown fields block writes");
+            Require(!PanoramaTransport.Assess(item.Profile, info, null).CanControl, "Missing configuration blocks writes");
+            if (item.Profile.Experimental)
+                Require(!PanoramaTransport.Assess(item.Profile, null, verified).CanControl, "Experimental DeviceInfo is mandatory");
+        }
+        var devices = UsbProfiles.Classify([PathFor("391A:1021", "first"), PathFor("391A:1021", "second")], []);
+        var first = devices.Candidates[0];
+        var second = devices.Candidates[1];
+        var simulation = new UsbSimulation { Inventory = devices, Online = false };
+        using var profileDir = new TemporaryProfile();
+        var controller = new MonitorController(simulation, profileDir.Profile, new IdleInput(true), new(1));
+        controller.Start();
+        try
+        {
+            await Eventually(() => controller.ChooseDevice && controller.WaitingForKanali);
+            Require(controller.Device is null && simulation.Checks == 0, "Two candidates require selection even before UDB");
+            controller.SelectDevice(first.Key);
+            simulation.Online = true;
+            simulation.Compatible = false;
+            await Eventually(() => controller.CompatibilityIssue is not null);
+            controller.ChangeMode(Mode.Manual, false);
+            controller.SetBrightness(55);
+            Require(!controller.CanControl && simulation.Writes.Count == 0 && !simulation.TriedWrite,
+                "Read incompatibility cannot issue a write");
+
+            simulation.Compatible = true;
+            controller.RefreshDiagnostics();
+            await Eventually(() => controller.CanControl && !controller.Busy);
+            Require(!controller.CanAutoControl && controller.Device?.Key == first.Key, "Read success alone does not opt in");
+            controller.ChangeMode(Mode.Manual, false);
+            await Eventually(() => controller.State == false && !controller.Busy);
+            Require(simulation.Writes.SequenceEqual([(first.Key, false)]), "Manual control targets the selected device only");
+            controller.AllowExperimentalAuto();
+            await Eventually(() => controller.State == true && !controller.Busy);
+            Require(profileDir.Profile.Load().ExperimentalAutoDevices?.SequenceEqual([first.Key]) == true,
+                "Experimental automatic control is persisted for the selected instance");
+
+            simulation.TriedWrite = false;
+            simulation.HoldWrite = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            controller.ChangeMode(Mode.Manual, false);
+            await Eventually(() => simulation.TriedWrite && controller.Busy);
+            simulation.Inventory = new([second], [], []);
+            controller.Invalidate();
+            simulation.HoldWrite.SetResult();
+            await Eventually(() => controller.Device is null && controller.ChooseDevice);
+            Require(simulation.Writes.Count == 2 && !controller.CanControl, "Disconnect invalidates an in-flight write without fallback");
+            controller.SelectDevice(second.Key);
+            await Eventually(() => controller.Device?.Key == second.Key && controller.CanControl && !controller.Busy);
+            Require(!controller.CanAutoControl && simulation.Writes.Count == 2, "Other instance does not inherit opt-in");
+
+            simulation.Journal = false;
+            await Eventually(() => !controller.JournalAvailable && !controller.CanControl);
+            simulation.Online = false;
+            await Eventually(() => controller.WaitingForKanali && controller.Device?.Key == second.Key);
+            int checks = simulation.Checks;
+            simulation.Online = simulation.Journal = true;
+            await Eventually(() => controller.CanControl && simulation.Checks > checks);
+        }
+        finally { await controller.StopAsync(); }
+    }
+
+    private sealed class TemporaryProfile : IDisposable
+    {
+        private readonly string directory = Directory.CreateTempSubdirectory("panorama-usb-test-").FullName;
+        internal Profile Profile => new(true, directory);
+        public void Dispose() => Directory.Delete(directory, true);
     }
 
     private static async Task Eventually(Func<bool> condition)

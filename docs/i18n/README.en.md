@@ -6,7 +6,7 @@
 
 The Panorama screen can stay lit after you step away and your main monitor has already gone dark. Panorama Screen Monitor runs in the system tray, turns off the AIO backlight after idle time, and wakes it when you return.
 
-**Tested on TRYX Panorama `391A:1011` with KANALI 2.7.0.**
+**Tested on TRYX Panorama (USB ID `391A:1011`) with KANALI 2.7.0.** Other Panorama USB models have [experimental support](#usb-compatibility).
 
 About six months ago, I asked the KANALI developers to add automatic backlight shutoff when the PC is idle. The feature was still missing when I prepared this release, so I wrote this utility.
 
@@ -18,7 +18,7 @@ About six months ago, I asked the KANALI developers to add automatic backlight s
 
 ## Quick start
 
-**Requirements:** Windows x64, a TRYX Panorama with the RK PANO USB device (`391A:1011`), and KANALI running normally.
+**Requirements:** Windows x64, a TRYX Panorama from the [compatibility table](#usb-compatibility), and KANALI running normally.
 
 1. Download the EXE or Windows x64 ZIP from the [latest release](https://github.com/Viper029GH/PanoramaScreenMonitor/releases/latest). Extract the ZIP if you chose it.
 2. Launch the EXE. It is portable and includes .NET. If KANALI starts later, the utility will wait for it automatically.
@@ -38,6 +38,24 @@ The build is unsigned. Release file checksums are listed in `SHA256SUMS.txt`.
 | Diagnostics | Model, firmware, screen software and OS, USB and UDB status, brightness, and the last successful read. |
 | Windows settings | Start with Windows or in the tray. Choose a light or dark theme or follow the system setting. |
 | Interface languages | Russian, English, German, French, Spanish, Brazilian Portuguese, Simplified Chinese, and Japanese. |
+
+## USB compatibility
+
+**Tested on TRYX Panorama (USB ID `391A:1011`) with KANALI 2.7.0.** Other Panorama USB models listed below have experimental support and are expected to work if they expose the Windows USBPRINT interface, respond to the same commands, and KANALI logs their replies through UDB. These models have not yet been tested on physical hardware with this app. If the read-only compatibility check fails, screen controls remain unavailable.
+
+| USB ID | Profile | Windows validation |
+| --- | --- | --- |
+| `391A:1011` | Panorama | Tested with KANALI 2.7.0 |
+| `391A:1021`, `391A:1061` | Panorama SE | Experimental |
+| `391A:1031`, `391A:10A1` | Panorama WB | Experimental |
+| `391A:1071` | Panorama SE V2 | Experimental |
+| `391A:1081` | Panorama V2 | Experimental |
+| `391A:10B1` | Panorama variant | Experimental |
+| `391A:1091` | Panorama WB V2 | Experimental |
+
+When multiple screens are connected, select one in **Settings**. If the selected screen is disconnected, the app waits for it or for you to choose a different screen. Manual controls become available on experimental models after a successful read-only check. Choose **Enable automatic control** to opt in for that device.
+
+When reporting compatibility, include the USB ID, firmware, KANALI version, and results for reading, manual ON/OFF, and brightness. Diagnostics shows the USB ID and firmware. Leave out the serial number.
 
 ## How it works
 
@@ -61,6 +79,8 @@ Demo mode lets you try the interface and simulate idle, input, errors, and timeo
 Run `./scripts/build-release.ps1` in PowerShell from the repository root. The [release script](../../scripts/build-release.ps1) verifies the build and puts the EXE, ZIP, .NET notices, and SHA-256 checksums in `artifacts/releases/`. The version is set in the [project file](../../PanoramaScreenMonitor.csproj).
 
 The implementation uses the published documentation for device commands and fields. [TRYX transport schema](https://github.com/DXVSI/Tryx-Linux-GUI/blob/production/protocol/wire-v1/transport.proto) · [Configuration schema](https://github.com/DXVSI/Tryx-Linux-GUI/blob/production/protocol/wire-v1/configuration.proto)
+
+USB candidates come from the TRYX Linux GUI profiles, the Nexus device catalog, and KANALI 2.7.0 mappings. [TRYX Linux GUI profiles](https://github.com/DXVSI/Tryx-Linux-GUI/blob/production/src/printerproductprofile.cpp) · [Nexus device catalog](https://hellonexus.com/devices)
 
 ## License
 

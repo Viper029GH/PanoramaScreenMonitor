@@ -13,6 +13,8 @@ internal sealed class UdbTail : IDisposable
     private static readonly UTF8Encoding Utf8 = new(false, true);
     internal static readonly string DefaultDirectory = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "kanali", "logs");
+    private static string CurrentFileName => $"udb_{DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}.log";
+    internal static bool HasCurrentLog() => File.Exists(Path.Combine(DefaultDirectory, CurrentFileName));
 
     private sealed class Cursor(FileStream file)
     {
@@ -47,7 +49,7 @@ internal sealed class UdbTail : IDisposable
 
     private void Discover(bool skipExisting)
     {
-        string name = $"udb_{DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}.log";
+        string name = CurrentFileName;
         FileStream file;
         try
         {

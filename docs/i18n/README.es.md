@@ -6,7 +6,7 @@
 
 La pantalla Panorama puede seguir encendida cuando te alejas y el monitor principal ya se ha apagado. Panorama Screen Monitor se ejecuta en la bandeja del sistema, apaga la retroiluminación al detectar inactividad y la enciende cuando vuelves.
 
-**Probado con TRYX Panorama `391A:1011` y KANALI 2.7.0.**
+**Probado con TRYX Panorama `391A:1011` y KANALI 2.7.0.** Los demás modelos USB tienen compatibilidad experimental. El control solo se habilita tras una comprobación de lectura correcta. [Compatibilidad USB](README.en.md#usb-compatibility)
 
 Hace unos seis meses pedí a los desarrolladores de KANALI que añadieran el apagado automático de la retroiluminación cuando el equipo estuviera inactivo. La función seguía sin estar disponible al preparar esta versión, así que escribí esta utilidad.
 
@@ -18,7 +18,7 @@ Hace unos seis meses pedí a los desarrolladores de KANALI que añadieran el apa
 
 ## Inicio rápido
 
-**Requisitos:** Windows x64, TRYX Panorama con el dispositivo USB RK PANO (`391A:1011`) y KANALI ejecutándose normalmente.
+**Requisitos:** Windows x64, un TRYX Panorama de la [tabla de compatibilidad USB](README.en.md#usb-compatibility) y KANALI ejecutándose normalmente.
 
 1. Descarga el EXE o ZIP para Windows x64 desde la [última versión](https://github.com/Viper029GH/PanoramaScreenMonitor/releases/latest). Si elegiste el ZIP, descomprímelo.
 2. Ejecuta el EXE. Es portátil e incluye .NET. Si KANALI se inicia después, la utilidad lo esperará automáticamente.

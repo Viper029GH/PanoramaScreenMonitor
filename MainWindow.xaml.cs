@@ -96,7 +96,7 @@ public partial class MainWindow : Window
             {
                 Size = Marshal.SizeOf<NotificationFilter>(),
                 Type = 5,
-                Class = new Guid("28d78fad-5a12-11d1-ae5b-0000f803a8c2")
+                Class = UsbDevice.PrinterClass
             };
             notification = RegisterDeviceNotificationW(handle, ref filter, 0);
             if (notification == IntPtr.Zero) profile.Log("Не удалось подписаться на уведомления об устройствах USB.");
@@ -127,18 +127,26 @@ public partial class MainWindow : Window
         ScreenState.Text = L(text);
         StateIcon.Text = monitor.State switch { true => "\uE7F4", false => "\uE708", _ => "\uE897" };
         StateIcon.Foreground = monitor.State == true ? (Brush)FindResource("ThemeAccent") : (Brush)FindResource("ThemeMuted");
-        ModeText.Text = L(monitor.Mode switch { Mode.Paused => "Пауза", Mode.Manual => "Ручной", _ => "Авто" });
+        ModeText.Text = L(monitor.Mode switch
+        {
+            Mode.Manual => "Ручной",
+            Mode.Auto when monitor.CanAutoControl => "Авто",
+            _ => "Пауза"
+        });
         const string countdown = "До выключения  ";
         Activity.Text = monitor.Activity.StartsWith(countdown, StringComparison.Ordinal)
             ? F("До выключения {0}", monitor.Activity[countdown.Length..]) : L(monitor.Activity);
         Issue.Text = Error(monitor.Issue, "Ошибка связи с устройством");
         Issue.ToolTip = monitor.Issue;
         Issue.Visibility = string.IsNullOrEmpty(Issue.Text) ? Visibility.Collapsed : Visibility.Visible;
-        AutoButton.Content = trayAuto.Text = L(monitor.Mode == Mode.Auto ? "Пауза" : "Возобновить автоуправление");
-        OnButton.IsEnabled = OffButton.IsEnabled = AutoButton.IsEnabled = SaveButton.IsEnabled = !monitor.Busy;
-        trayOn.Enabled = trayOff.Enabled = trayAuto.Enabled = !monitor.Busy;
+        AutoButton.Content = trayAuto.Text = L(!monitor.CanAutoControl ? "Разрешить автоуправление"
+            : monitor.Mode == Mode.Auto ? "Пауза" : "Возобновить автоуправление");
+        SaveButton.IsEnabled = !monitor.Busy;
+        OnButton.IsEnabled = OffButton.IsEnabled = AutoButton.IsEnabled = monitor.CanControl && !monitor.Busy;
+        trayOn.Enabled = trayOff.Enabled = trayAuto.Enabled = AutoButton.IsEnabled;
         tray.Text = $"Panorama — {ScreenState.Text} · {ModeText.Text}";
         RefreshTimeoutFields();
+        RefreshDeviceSelection();
         RefreshAdjustment();
         RefreshDeviceDetails();
     }
@@ -161,7 +169,18 @@ public partial class MainWindow : Window
             };
     }
 
-    private void ToggleMode() => monitor.ChangeMode(monitor.Mode == Mode.Auto ? Mode.Paused : Mode.Auto);
+    private void ToggleMode()
+    {
+        try
+        {
+            if (!monitor.CanAutoControl) monitor.AllowExperimentalAuto();
+            else monitor.ChangeMode(monitor.Mode == Mode.Auto ? Mode.Paused : Mode.Auto);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+        {
+            ShowDeviceSaveError();
+        }
+    }
     private void ToggleAuto(object sender, RoutedEventArgs e) => ToggleMode();
     private void SetOn(object sender, RoutedEventArgs e) => monitor.ChangeMode(Mode.Manual, true);
     private void SetOff(object sender, RoutedEventArgs e) => monitor.ChangeMode(Mode.Manual, false);
@@ -186,7 +205,11 @@ public partial class MainWindow : Window
         {
             string code = LanguageBox.SelectedValue as string ?? "ru";
             var theme = (InterfaceTheme)Math.Max(0, ThemeBox.SelectedIndex);
-            monitor.Save(new(minutes, RunCheck.IsChecked == true, TrayCheck.IsChecked == true, sync, code, theme));
+            monitor.Save(monitor.Settings with
+            {
+                Minutes = minutes, AutoStart = RunCheck.IsChecked == true, StartHidden = TrayCheck.IsChecked == true,
+                SyncWindowsDisplayTimeout = sync, Language = code, Theme = theme
+            });
             MinutesBox.Text = minutes.ToString();
             ApplyAppearance();
             SetSaveNotice("Настройки сохранены");

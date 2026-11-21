@@ -6,7 +6,7 @@
 
 离开电脑后，主显示器可能已经熄灭，但 Panorama 屏幕还亮着。Panorama Screen Monitor 在系统托盘中运行，空闲一段时间后关闭水冷屏幕的背光，并在你回来操作电脑时重新点亮。
 
-**已在 TRYX Panorama `391A:1011` 和 KANALI 2.7.0 上验证。**
+**已在 TRYX Panorama `391A:1011` 和 KANALI 2.7.0 上验证。** 其他 USB 型号为实验性支持。只有成功通过只读检查后才能控制屏幕。[USB 兼容性](README.en.md#usb-compatibility)
 
 大约半年前，我请 KANALI 开发者添加空闲时自动关闭背光的功能。准备此版本时，该功能仍未加入，所以我写了这个工具。
 
@@ -18,7 +18,7 @@
 
 ## 快速开始
 
-**要求：** Windows x64、带有 RK PANO USB 设备（`391A:1011`）的 TRYX Panorama，以及正常运行的 KANALI。
+**要求：** Windows x64、[USB 兼容性表](README.en.md#usb-compatibility)中的 TRYX Panorama，以及正常运行的 KANALI。
 
 1. 从[最新版本](https://github.com/Viper029GH/PanoramaScreenMonitor/releases/latest)下载 Windows x64 的 EXE 或 ZIP。如果下载的是 ZIP，请先解压。
 2. 运行 EXE。程序无需安装，且已包含 .NET。如果 KANALI 稍后启动，程序会自动等待。

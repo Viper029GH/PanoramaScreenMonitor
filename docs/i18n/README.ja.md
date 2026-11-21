@@ -6,7 +6,7 @@
 
 パソコンから離れてメインモニターが消灯しても、Panorama の画面は点灯したままになることがあります。Panorama Screen Monitor は通知領域で動作し、無操作が続くとバックライトを消灯し、操作を再開すると点灯します。
 
-**TRYX Panorama `391A:1011` と KANALI 2.7.0 の組み合わせで動作確認済みです。**
+**TRYX Panorama `391A:1011` と KANALI 2.7.0 の組み合わせで動作確認済みです。** その他の USB モデルは実験的対応です。読み取り確認に成功した場合のみ画面を操作できます。[USB 互換性](README.en.md#usb-compatibility)
 
 約半年前、KANALI の開発元に無操作時の自動消灯機能を要望しました。このリリースの準備時点でもその機能が追加されていなかったため、このツールを作りました。
 
@@ -18,7 +18,7 @@
 
 ## クイックスタート
 
-**動作条件:** Windows x64、RK PANO USB デバイス（`391A:1011`）を搭載した TRYX Panorama、および通常どおり起動した KANALI。
+**動作条件:** Windows x64、[USB 互換性表](README.en.md#usb-compatibility)に記載されている TRYX Panorama、および通常どおり起動した KANALI。
 
 1. [最新リリース](https://github.com/Viper029GH/PanoramaScreenMonitor/releases/latest)から Windows x64 用の EXE または ZIP を取得します。ZIP を選んだ場合は展開してください。
 2. EXE を実行します。インストール不要で .NET を同梱しています。後から KANALI が起動する場合は、ツールが自動的に待機します。

@@ -6,7 +6,7 @@
 
 Das Panorama-Display kann weiterleuchten, wenn der Hauptmonitor nach dem Verlassen des PCs bereits ausgeschaltet ist. Panorama Screen Monitor läuft im Infobereich, schaltet die Beleuchtung bei Inaktivität aus und bei neuer Eingabe wieder ein.
 
-**Getestet mit TRYX Panorama `391A:1011` und KANALI 2.7.0.**
+**Getestet mit TRYX Panorama `391A:1011` und KANALI 2.7.0.** Weitere USB-Modelle werden experimentell unterstützt. Die Steuerung wird erst nach erfolgreicher Leseprüfung verfügbar. [USB-Kompatibilität](README.en.md#usb-compatibility)
 
 Vor etwa einem halben Jahr bat ich die KANALI-Entwickler darum, die Hintergrundbeleuchtung bei Inaktivität automatisch auszuschalten. Als diese Version vorbereitet wurde, fehlte die Funktion noch. Deshalb habe ich dieses Programm geschrieben.
 
@@ -18,7 +18,7 @@ Vor etwa einem halben Jahr bat ich die KANALI-Entwickler darum, die Hintergrundb
 
 ## Erste Schritte
 
-**Voraussetzungen:** Windows x64, TRYX Panorama mit dem USB-Gerät RK PANO (`391A:1011`) und regulär gestartetes KANALI.
+**Voraussetzungen:** Windows x64, ein TRYX-Panorama-Gerät aus der [USB-Kompatibilitätstabelle](README.en.md#usb-compatibility) und regulär gestartetes KANALI.
 
 1. Laden Sie die EXE oder ZIP für Windows x64 aus der [neuesten Version](https://github.com/Viper029GH/PanoramaScreenMonitor/releases/latest) herunter. Entpacken Sie gegebenenfalls die ZIP.
 2. Starten Sie die EXE. Das Programm ist portabel und enthält .NET. Falls KANALI später startet, wartet das Programm automatisch darauf.

@@ -30,6 +30,7 @@ internal sealed class IdleInput(bool demo)
 internal sealed class MonitorController
 {
     private readonly IScreenTransport transport;
+    private readonly IUsbScreenTransport? usb;
     private readonly Profile profile;
     private readonly IdleInput idle;
     private readonly Func<uint?> readDisplayTimeout;
@@ -49,11 +50,16 @@ internal sealed class MonitorController
     private uint? applyingBrightness;
     private bool infoPending;
     private bool refreshConfiguration;
+    private string? automaticDevice;
+    private bool compatibilityConfirmed;
+    private bool rebind;
+    private bool journalPresent;
 
     internal MonitorController(IScreenTransport transport, Profile profile, IdleInput idle, Preferences preferences,
         Func<uint?>? readDisplayTimeout = null)
     {
         this.transport = transport;
+        usb = transport as IUsbScreenTransport;
         this.profile = profile;
         this.idle = idle;
         this.readDisplayTimeout = readDisplayTimeout ?? WindowsDisplayTimeout.ReadSeconds;
@@ -77,6 +83,15 @@ internal sealed class MonitorController
     internal bool InfoStale { get; private set; }
     internal bool WaitingForKanali => waiting;
     internal bool UsbUnavailable { get; private set; }
+    internal UsbInventory Devices { get; private set; } = UsbInventory.Empty;
+    internal UsbCandidate? Device { get; private set; }
+    internal bool CanControl => usb is null || compatibilityConfirmed;
+    internal bool Experimental => Device?.Profile.Experimental == true;
+    internal bool CanAutoControl => !Experimental
+        || Settings.ExperimentalAutoDevices?.Contains(Device!.Key) == true;
+    internal string? CompatibilityIssue { get; private set; }
+    internal bool ChooseDevice => Devices.Candidates.Length > 1 || (Devices.Candidates.Length > 0 && Device is null);
+    internal bool JournalAvailable => usb is null || journalPresent;
     internal uint? WindowsTimeoutSeconds { get; private set; }
     internal uint? TimeoutSeconds => Settings.SyncWindowsDisplayTimeout
         ? WindowsTimeoutSeconds : (uint)Settings.Minutes * 60;
@@ -92,7 +107,7 @@ internal sealed class MonitorController
 
     internal void ChangeMode(Mode mode, bool target = false)
     {
-        if (closing || Busy) return;
+        if (closing || Busy || !CanControl || (mode == Mode.Auto && !CanAutoControl)) return;
         Mode = mode;
         manualTarget = target;
         retryAt = 0;
@@ -110,14 +125,38 @@ internal sealed class MonitorController
         Changed?.Invoke();
     }
 
+    internal void SelectDevice(string key)
+    {
+        if (closing || !Devices.Candidates.Any(device => device.Key == key)) return;
+        profile.Save(Settings with { SelectedDevice = key });
+        Settings = Settings with { SelectedDevice = key };
+        Mode = Mode.Auto;
+        if (Device?.Key != key) Device = null;
+        ResetCompatibility(clearData: true);
+        Invalidate();
+    }
+
+    internal void AllowExperimentalAuto()
+    {
+        if (closing || Busy || !Experimental || !CanControl || CanAutoControl) return;
+        string[] approved = [.. Settings.ExperimentalAutoDevices ?? [], Device!.Key];
+        Save(Settings with { ExperimentalAutoDevices = approved });
+        ChangeMode(Mode.Auto);
+    }
+
     internal void Invalidate()
     {
         if (closing) return;
         Interlocked.Increment(ref generation);
+        if (usb is not null)
+        {
+            ResetCompatibility(clearData: false);
+            rebind = true;
+        }
         State = null;
         UsbUnavailable = false;
         queuedBrightness = null;
-        infoPending = true;
+        infoPending = usb is null;
         InfoStale = true;
         retryAt = 0;
         nextProbe = 0;
@@ -127,7 +166,7 @@ internal sealed class MonitorController
 
     internal void SetBrightness(uint value)
     {
-        if (closing || State != true || value > 100) return;
+        if (closing || !CanControl || State != true || value > 100) return;
         queuedBrightness = value;
         BrightnessIssue = null;
         Changed?.Invoke();
@@ -137,6 +176,11 @@ internal sealed class MonitorController
     internal void RefreshDiagnostics()
     {
         if (closing) return;
+        if (usb is not null)
+        {
+            Invalidate();
+            return;
+        }
         infoPending = true;
         refreshConfiguration = true;
         retryAt = 0;
@@ -153,11 +197,13 @@ internal sealed class MonitorController
             {
                 nextProbe = now + 1000;
                 bool sync = Settings.SyncWindowsDisplayTimeout;
-                var (current, timeout) = await Task.Run(() =>
-                    (transport.Session(), sync ? readDisplayTimeout() : null));
+                var (current, timeout, devices, journal) = await Task.Run(() =>
+                    (transport.Session(), sync ? readDisplayTimeout() : null, usb?.Discover(), usb?.HasJournal() == true));
                 if (closing || revision != generation) return;
                 WindowsTimeoutSeconds = timeout;
-                if (current != session)
+                if (usb is not null)
+                    UpdateConnection(current, devices!, journal);
+                else if (current != session)
                 {
                     session = current;
                     State = null;
@@ -175,6 +221,29 @@ internal sealed class MonitorController
                 }
                 else waiting = false;
             }
+            if (usb is not null)
+            {
+                if (Device is null)
+                {
+                    Activity = ChooseDevice ? "Выберите экран в настройках."
+                        : Devices.MissingPrinter.Length > 0 ? "Интерфейс USBPRINT отсутствует."
+                        : Devices.Unknown.Length > 0 ? "Неизвестный USB ID TRYX."
+                        : Settings.SelectedDevice is not null || automaticDevice is not null ? "Выбранный экран отключён."
+                        : "Устройство Panorama не найдено.";
+                    return;
+                }
+                if (session is not null && !journalPresent)
+                {
+                    Activity = "Ожидание журнала UDB. USB-команда не отправлена.";
+                    return;
+                }
+                if (session is not null && !compatibilityConfirmed)
+                {
+                    if (now >= retryAt) await CheckCompatibilityAsync(revision);
+                    else Activity = "Ожидание повторной проверки";
+                    return;
+                }
+            }
             if (session is null) return;
 
             uint? timeoutSeconds = TimeoutSeconds;
@@ -186,6 +255,7 @@ internal sealed class MonitorController
             {
                 Mode.Manual => manualTarget,
                 Mode.Paused => null,
+                _ when !CanAutoControl => null,
                 _ when timeoutSeconds is null => null,
                 _ => threshold == 0 || idleTime < threshold
             };
@@ -203,6 +273,7 @@ internal sealed class MonitorController
                 {
                     Mode.Paused => "Автоматические переходы приостановлены",
                     Mode.Manual => "Удержание выбранного состояния",
+                    _ when !CanAutoControl => "Автоуправление для этой модели выключено.",
                     _ when timeoutSeconds is null => "Тайм-аут Windows недоступен",
                     _ when timeoutSeconds == 0 => "Автовыключение отключено в Windows",
                     _ when State == false => "Ожидание ввода",
@@ -228,7 +299,7 @@ internal sealed class MonitorController
                     && (brightness.HasValue || !automatic || MayApplyAutomatic(target, followsWindows, timeoutSeconds)),
                 shutdown.Token, brightness));
             if (closing || revision != generation) return;
-            if (State is null && InfoStale && Info is not null) infoPending = true;
+            if (usb is null && State is null && InfoStale && Info is not null) infoPending = true;
             State = result.State;
             UsbUnavailable = false;
             LastConfiguration = result;
@@ -254,6 +325,11 @@ internal sealed class MonitorController
             queuedBrightness = null;
             InfoStale = true;
             Issue = PanoramaTransport.Describe(ex);
+            if (usb is not null)
+            {
+                compatibilityConfirmed = false;
+                CompatibilityIssue = Issue;
+            }
             if (applyingBrightness.HasValue) BrightnessIssue = Issue;
             if (Issue != lastRecordedIssue) profile.Log(Issue);
             lastRecordedIssue = Issue;
@@ -269,6 +345,66 @@ internal sealed class MonitorController
                 Activity = "Подсветка подтверждена";
             if (!closing) Changed?.Invoke();
         }
+    }
+
+    private void UpdateConnection(long? current, UsbInventory devices, bool journal)
+    {
+        Devices = devices;
+        var candidate = UsbProfiles.Select(devices, Settings.SelectedDevice, ref automaticDevice);
+        bool changed = candidate?.Key != Device?.Key;
+        if (changed || current != session || journal != journalPresent || rebind)
+        {
+            if (changed) Mode = Mode.Auto;
+            ResetCompatibility(clearData: changed);
+            Device = candidate;
+            session = current;
+            journalPresent = journal;
+            usb!.Bind(candidate);
+            rebind = false;
+        }
+    }
+
+    private void ResetCompatibility(bool clearData)
+    {
+        compatibilityConfirmed = false;
+        CompatibilityIssue = null;
+        State = null;
+        queuedBrightness = null;
+        InfoStale = true;
+        retryAt = 0;
+        if (!clearData) return;
+        LastConfiguration = null;
+        LastRead = null;
+        Info = null;
+        InfoIssue = null;
+        Issue = null;
+        BrightnessIssue = null;
+    }
+
+    private async Task CheckCompatibilityAsync(int revision)
+    {
+        Busy = true;
+        Activity = "Проверка совместимости…";
+        Changed?.Invoke();
+        var result = await Task.Run(() => usb!.CheckAsync(shutdown.Token));
+        if (closing || revision != generation) return;
+        compatibilityConfirmed = result.CanControl;
+        CompatibilityIssue = result.BlockReason;
+        InfoIssue = result.InfoError;
+        if (result.Info is not null)
+        {
+            Info = result.Info;
+            InfoStale = false;
+        }
+        if (result.Configuration is { } config)
+        {
+            LastConfiguration = config;
+            State = config.State;
+        }
+        if (result.Info is not null || result.Configuration is not null) LastRead = DateTimeOffset.Now;
+        Issue = result.BlockReason;
+        Activity = result.CanControl ? "Подсветка подтверждена" : "Управление недоступно";
+        if (!result.CanControl) retryAt = Environment.TickCount64 + 3000;
     }
 
     private async Task ReadDiagnosticsAsync(int revision)

@@ -13,7 +13,7 @@
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <DebugType>none</DebugType>
     <ApplicationIcon>Panorama.ico</ApplicationIcon>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <Product>Panorama Screen Monitor</Product>
     <Description>Управление подсветкой экрана TRYX Panorama в Windows.</Description>
   </PropertyGroup>

@@ -251,6 +251,11 @@
                         <Expander x:Name="SettingsExpander" Header="Настройки" IsExpanded="False"
                                   Foreground="{DynamicResource ThemeForeground}">
                             <StackPanel Margin="0,9,0,0">
+                                <StackPanel x:Name="DeviceSelectionRow" Visibility="Collapsed" Margin="0,0,0,8">
+                                    <TextBlock Text="Устройство USB" Margin="0,0,0,3"/>
+                                    <ComboBox x:Name="DeviceSelection" MinHeight="26" AutomationProperties.Name="Устройство USB"
+                                              SelectionChanged="DeviceSelectionChanged"/>
+                                </StackPanel>
                                 <CheckBox x:Name="SyncWindowsCheck" Content="Использовать тайм-аут экрана Windows"
                                           Checked="SyncWindowsChanged" Unchecked="SyncWindowsChanged"/>
                                 <DockPanel x:Name="ManualTimeoutRow" Margin="0,7,0,6">
@@ -295,6 +300,10 @@
                                     <TextBlock x:Name="ConnectionText" VerticalAlignment="Center" TextWrapping="Wrap"
                                                Foreground="{DynamicResource ThemeAccent}"/>
                                 </DockPanel>
+                                <TextBlock x:Name="CompatibilityText" Margin="0,7,0,0" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource ThemeAccent}"/>
+                                <TextBlock x:Name="ProbeDetails" Margin="0,3,0,0" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource ThemeMuted}"/>
                                 <TextBlock x:Name="DeviceDetails" Margin="0,7,0,0" TextWrapping="Wrap"/>
                                 <TextBlock x:Name="DeviceNotice" Foreground="{DynamicResource ThemeDanger}" Margin="0,7,0,0"
                                            TextWrapping="Wrap" Visibility="Collapsed"/>

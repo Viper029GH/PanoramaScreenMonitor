@@ -9,6 +9,13 @@ namespace PanoramaScreenMonitor;
 
 public partial class MainWindow
 {
+    private sealed record DeviceOption(string Key, string Label)
+    {
+        public override string ToString() => Label;
+    }
+
+    private bool refreshingDevices;
+
     private string L(string text) => language.Text(text);
     private string F(string text, params object[] values) => string.Format(language.Culture, L(text), values);
     private string? Error(string? details, string fallback) => details is null ? null : language.Error(details, fallback);
@@ -76,7 +83,7 @@ public partial class MainWindow
     private void RefreshAdjustment()
     {
         uint? confirmed = monitor.LastConfiguration?.Brightness;
-        BrightnessSlider.IsEnabled = monitor.State == true && confirmed.HasValue;
+        BrightnessSlider.IsEnabled = monitor.CanControl && monitor.State == true && confirmed.HasValue;
         if (!BrightnessSlider.IsEnabled)
         {
             brightnessCommit.Stop();
@@ -170,19 +177,61 @@ public partial class MainWindow
 
     private void RefreshDiagnostics(object sender, RoutedEventArgs e) => monitor.RefreshDiagnostics();
 
+    private void RefreshDeviceSelection()
+    {
+        DeviceSelectionRow.Visibility = monitor.ChooseDevice ? Visibility.Visible : Visibility.Collapsed;
+        if (!monitor.ChooseDevice) return;
+        var choices = monitor.Devices.Candidates.Select((device, index) =>
+            new DeviceOption(device.Key, $"{index + 1}. {device.Profile.Name} · {device.Profile.Id}")).ToArray();
+        refreshingDevices = true;
+        try
+        {
+            if (DeviceSelection.ItemsSource is not DeviceOption[] previous || !previous.SequenceEqual(choices))
+                DeviceSelection.ItemsSource = choices;
+            string? key = monitor.Settings.SelectedDevice ?? monitor.Device?.Key;
+            DeviceSelection.SelectedItem = ((DeviceOption[])DeviceSelection.ItemsSource)
+                .FirstOrDefault(option => option.Key == key);
+        }
+        finally { refreshingDevices = false; }
+    }
+
+    private void DeviceSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (refreshingDevices || DeviceSelection.SelectedItem is not DeviceOption option) return;
+        try { monitor.SelectDevice(option.Key); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+        {
+            ShowDeviceSaveError();
+            RefreshDeviceSelection();
+        }
+    }
+
+    private void ShowDeviceSaveError()
+    {
+        Issue.Text = L("Не удалось сохранить настройки");
+        Issue.Visibility = Visibility.Visible;
+        SetSaveNotice("Не удалось сохранить настройки");
+    }
+
     private void RefreshDeviceDetails()
     {
         var info = monitor.Info;
         var config = monitor.LastConfiguration;
+        var device = monitor.Device;
         string dataMissing = L("Нет данных");
-        string model = ValueOr(info?.Product, "RK PANO");
-        Device.Text = demo is null ? $"{model} · USB 391A:1011" : L("Деморежим · имитация RK PANO");
+        string model = ValueOr(info?.Product, ValueOr(device?.WindowsName, device?.Profile.Name ?? "TRYX Panorama"));
+        string? usbId = device?.Profile.Id ?? (demo is not null ? "391A:1011" : null);
+        string title = usbId is null ? model : $"{model} · USB {usbId}";
+        Device.Text = demo is null ? title : L("Деморежим · имитация RK PANO");
         bool stale = monitor.State is null;
         ConnectionText.Text = L(monitor.WaitingForKanali ? "Ожидание запуска KANALI"
+            : device is null && demo is null ? monitor.Activity
+            : !monitor.JournalAvailable ? "Ожидание журнала UDB. USB-команда не отправлена."
             : !stale ? "USB подключено · UDB доступен"
             : monitor.UsbUnavailable ? "Интерфейс USB недоступен"
             : monitor.LastRead is null && monitor.Issue is null ? "Подготовка к подключению…" : "Нет ответа конфигурации");
         RefreshDevice.IsEnabled = !monitor.Busy && !monitor.WaitingForKanali;
+        RefreshCompatibilityDetails(device, info, stale);
 
         string screen = config is null ? dataMissing
             : $"{L(config.State ? "Экран включён" : "Экран выключен")} · {config.Brightness}%";
@@ -190,7 +239,7 @@ public partial class MainWindow
         string outdated = L("данные устарели");
         if (config is not null && stale) screen += $" · {outdated}";
         if (monitor.LastRead.HasValue && stale && (monitor.Info is null || monitor.InfoStale)) date += $" · {outdated}";
-        string modelLine = F("Модель · {0}", $"{model} · USB 391A:1011");
+        string modelLine = F("Модель · {0}", title);
         if (info is not null && monitor.InfoStale) modelLine += $" · {outdated}";
         DeviceDetails.Text = string.Join(Environment.NewLine,
             modelLine,
@@ -204,6 +253,38 @@ public partial class MainWindow
         DeviceNotice.ToolTip = details;
         DeviceNotice.Visibility = details is null ? Visibility.Collapsed : Visibility.Visible;
         if (saveNotice is not null) Saved.Text = L(saveNotice);
+    }
+
+    private void RefreshCompatibilityDetails(UsbCandidate? device, DeviceInfo? info, bool stale)
+    {
+        CompatibilityText.Visibility = demo is null ? Visibility.Visible : Visibility.Collapsed;
+        ProbeDetails.Visibility = demo is null ? Visibility.Visible : Visibility.Collapsed;
+        if (demo is not null) return;
+        CompatibilityText.Text = L(device is null ? "Управление недоступно"
+            : !device.Profile.Experimental && monitor.CanControl ? "Проверенная модель"
+            : monitor.CanControl ? "Экспериментальная модель — чтение работает"
+            : monitor.CompatibilityIssue is not null ? "Управление недоступно"
+            : device.Profile.Experimental ? "Экспериментальная модель — требуется проверка" : "Управление недоступно");
+
+        var details = new List<string>();
+        if (device is not null)
+        {
+            details.Add($"USBPRINT · {device.Profile.Id}");
+            if (!string.IsNullOrWhiteSpace(device.WindowsName)) details.Add($"Windows · {device.WindowsName}");
+            details.Add(L(info is not null && !monitor.InfoStale ? "DeviceInfo прочитан" : "DeviceInfo не прочитан"));
+            details.Add(L(!stale ? "Конфигурация прочитана" : "Конфигурация не прочитана"));
+            if (device.Profile.Experimental) details.Add(L("Экспериментальная совместимость"));
+        }
+        else if (monitor.Devices.Candidates.Length > 0)
+        {
+            details.Add(string.Join(", ", monitor.Devices.Candidates.Select(candidate => candidate.Profile.Id)));
+            details.Add(L(monitor.Activity));
+        }
+        if (monitor.Devices.MissingPrinter.Length > 0)
+            details.Add($"{L("Интерфейс USBPRINT отсутствует.")} {string.Join(", ", monitor.Devices.MissingPrinter)}");
+        if (monitor.Devices.Unknown.Length > 0)
+            details.Add($"{L("Неизвестный USB ID TRYX.")} {string.Join(", ", monitor.Devices.Unknown)}");
+        ProbeDetails.Text = string.Join(" · ", details);
     }
 
     private static string ValueOr(string? value, string fallback) => string.IsNullOrWhiteSpace(value) ? fallback : value;

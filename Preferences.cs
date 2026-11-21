@@ -4,13 +4,14 @@ using Microsoft.Win32;
 namespace PanoramaScreenMonitor;
 
 internal sealed record Preferences(int Minutes = 10, bool AutoStart = false, bool StartHidden = false,
-    bool SyncWindowsDisplayTimeout = false, string Language = "ru", InterfaceTheme Theme = InterfaceTheme.System);
+    bool SyncWindowsDisplayTimeout = false, string Language = "ru", InterfaceTheme Theme = InterfaceTheme.System,
+    string? SelectedDevice = null, string[]? ExperimentalAutoDevices = null);
 
-internal sealed class Profile(bool demo)
+internal sealed class Profile(bool demo, string? directory = null)
 {
     private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
     private const string RunName = "PanoramaScreenMonitor";
-    internal string DirectoryPath { get; } = Path.Combine(
+    internal string DirectoryPath { get; } = directory ?? Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         demo ? "PanoramaScreenMonitor.Demo" : "PanoramaScreenMonitor");
 

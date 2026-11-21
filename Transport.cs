@@ -5,6 +5,10 @@ namespace PanoramaScreenMonitor;
 
 internal sealed record Transition(bool State, string? Diagnostic, uint Brightness = 0, string? BrightnessError = null);
 internal sealed record DeviceInfo(string? Product, string? Firmware, string? AppVersion, string? Os);
+internal sealed record Compatibility(DeviceInfo? Info, Transition? Configuration, string? InfoError, string? BlockReason)
+{
+    internal bool CanControl => Configuration is not null && BlockReason is null;
+}
 
 internal interface IScreenTransport
 {
@@ -13,10 +17,29 @@ internal interface IScreenTransport
     Task<DeviceInfo> ReadDeviceInfoAsync(CancellationToken token);
 }
 
-internal sealed class PanoramaTransport : IScreenTransport
+internal interface IUsbScreenTransport : IScreenTransport
+{
+    UsbInventory Discover();
+    bool HasJournal();
+    void Bind(UsbCandidate? candidate);
+    Task<Compatibility> CheckAsync(CancellationToken token);
+}
+
+internal sealed class PanoramaTransport : IUsbScreenTransport
 {
     private static readonly int CurrentSession = GetCurrentSession();
     private static long sequence = RandomNumberGenerator.GetInt32(1, int.MaxValue) * 1_000_000L;
+    private UsbCandidate? selected;
+    private long? verifiedSession;
+
+    public UsbInventory Discover() => UsbDevice.Discover();
+    public bool HasJournal() => UdbTail.HasCurrentLog();
+
+    public void Bind(UsbCandidate? candidate)
+    {
+        selected = candidate;
+        verifiedSession = null;
+    }
 
     private static int GetCurrentSession()
     {
@@ -48,7 +71,10 @@ internal sealed class PanoramaTransport : IScreenTransport
         uint? brightness = null)
     {
         long session = RequireSession();
-        string path = UsbDevice.Find();
+        var device = RequireDevice();
+        string path = device.Path;
+        if ((target.HasValue || brightness.HasValue) && verifiedSession != session)
+            throw new IOException("Сначала требуется проверка чтения для этого устройства.");
         var config = await QueryAsync(path, session, token).ConfigureAwait(false);
         var current = ReadDisplay(config);
         if (brightness.HasValue && !current.State)
@@ -62,10 +88,16 @@ internal sealed class PanoramaTransport : IScreenTransport
             byte[] payload = Protocol.Configuration(config, target, brightness);
             ulong track = NextTrack();
             using var ack = new UdbTail(track);
-            RequireSession(session);
             if (!mayWrite()) return current;
+            if (!UsbDevice.IsPresent(device)) throw new UsbInterfaceException("Выбранный экран отключён.");
             writeAttempted = true;
-            if (!UsbDevice.Write(path, Protocol.Frame(track, 200, payload), token, mayWrite)) return current;
+            if (!UsbDevice.Write(path, Protocol.Frame(track, 200, payload), token, () =>
+                {
+                    if (!mayWrite()) return false;
+                    RequireSession(session);
+                    return verifiedSession == session && HasJournal();
+                }))
+                return current;
 
             var verified = await QueryAsync(path, session, token).ConfigureAwait(false);
             var response = ack.Poll(block => Protocol.Error(block) || block.ContainsKey("ack")
@@ -117,11 +149,69 @@ internal sealed class PanoramaTransport : IScreenTransport
     public async Task<DeviceInfo> ReadDeviceInfoAsync(CancellationToken token)
     {
         long session = RequireSession();
-        string path = UsbDevice.Find();
+        return await QueryInfoAsync(RequireDevice().Path, session, token).ConfigureAwait(false);
+    }
+
+    private async Task<DeviceInfo> QueryInfoAsync(string path, long session, CancellationToken token)
+    {
         var info = await QueryBlockAsync(path, session, 100, [0x0a, 0x02, 0x4e, 0x41],
             "device_info", token).ConfigureAwait(false);
         return Protocol.ReadDeviceInfo(info);
     }
+
+    public async Task<Compatibility> CheckAsync(CancellationToken token)
+    {
+        verifiedSession = null;
+        long session = RequireSession();
+        var device = RequireDevice();
+        DeviceInfo? info = null;
+        string? infoError = null;
+        try { info = await QueryInfoAsync(device.Path, session, token).ConfigureAwait(false); }
+        catch (Exception ex) when (IsReadFailure(ex)) { infoError = Describe(ex); }
+
+        Protocol.Block? config = null;
+        string? configError = null;
+        try { config = await QueryAsync(device.Path, session, token).ConfigureAwait(false); }
+        catch (Exception ex) when (IsReadFailure(ex)) { configError = Describe(ex); }
+
+        var result = Assess(device.Profile, info, config, infoError, configError);
+        RequireSession(session);
+        if (!UsbDevice.IsPresent(device)) throw new UsbInterfaceException("Выбранный экран отключён.");
+        if (result.CanControl) verifiedSession = session;
+        return result;
+    }
+
+    internal static Compatibility Assess(UsbProfile profile, DeviceInfo? info, Protocol.Block? config,
+        string? infoError = null, string? configError = null)
+    {
+        Transition? display = null;
+        if (config is not null)
+        {
+            try
+            {
+                display = ReadDisplay(config);
+                _ = Protocol.Configuration(config, null);
+            }
+            catch (Exception ex) when (IsReadFailure(ex)) { configError = Describe(ex); }
+        }
+
+        if (profile.Experimental && string.IsNullOrWhiteSpace(info?.Product))
+            infoError ??= "В ответе DeviceInfo отсутствует модель экрана.";
+
+        string? block = configError;
+        if (config is null) block ??= "В ответе UDB отсутствует запрошенный блок.";
+        if (profile.Experimental)
+        {
+            block ??= infoError;
+            if (!string.IsNullOrWhiteSpace(info?.Product) && !profile.MatchesProduct(info.Product))
+                block = "Модель из DeviceInfo не соответствует USB-профилю.";
+            if (display?.Brightness > 100) block ??= "Яркость в конфигурации выходит за диапазон 0–100%.";
+        }
+        return new(info, display, infoError, block);
+    }
+
+    private UsbCandidate RequireDevice() => selected
+        ?? throw new UsbInterfaceException("Выбранный экран отключён.");
 
     private long RequireSession(long? expected = null)
     {

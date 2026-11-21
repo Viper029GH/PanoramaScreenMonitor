@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using Microsoft.Win32.SafeHandles;
 
 namespace PanoramaScreenMonitor;
@@ -9,23 +8,20 @@ internal sealed class UsbInterfaceException(string message) : IOException(messag
 
 internal static class UsbDevice
 {
-    internal static string Find()
-    {
-        var printer = new Guid("28d78fad-5a12-11d1-ae5b-0000f803a8c2");
-        string[] matches = Interfaces(printer)
-            .Where(path => Regex.IsMatch(path, @"vid_391a&pid_1011(?:[&#]|$)", RegexOptions.IgnoreCase))
-            .ToArray();
-        if (matches.Length == 1) return matches[0];
-        if (matches.Length > 1) throw new UsbInterfaceException("Найдено несколько интерфейсов RK PANO (391A:1011).");
+    internal static readonly Guid PrinterClass = new("28d78fad-5a12-11d1-ae5b-0000f803a8c2");
+    internal static readonly Guid UsbClass = new("a5dcbf10-6530-11d2-901f-00c04fb951ed");
 
-        var usb = new Guid("a5dcbf10-6530-11d2-901f-00c04fb951ed");
-        if (Interfaces(usb).Any(path => Regex.IsMatch(path, @"vid_391a&pid_(?!1011(?:[&#]|$))",
-            RegexOptions.IgnoreCase)))
-            throw new UsbInterfaceException("Обнаружено другое устройство TRYX. Поддерживается RK PANO (391A:1011).");
-        throw new UsbInterfaceException("Устройство RK PANO (391A:1011) не найдено.");
+    internal static UsbInventory Discover()
+    {
+        var names = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+        var printers = Interfaces(PrinterClass, names);
+        return UsbProfiles.Classify(printers, Interfaces(UsbClass), names);
     }
 
-    private static List<string> Interfaces(Guid guid)
+    internal static bool IsPresent(UsbCandidate device) =>
+        Interfaces(PrinterClass).Contains(device.Path, StringComparer.OrdinalIgnoreCase);
+
+    private static List<string> Interfaces(Guid guid, Dictionary<string, string?>? descriptions = null)
     {
         IntPtr set = SetupDiGetClassDevsW(ref guid, IntPtr.Zero, IntPtr.Zero, 0x12);
         if (set == new IntPtr(-1)) throw NativeError("Не удалось перечислить USB-устройства");
@@ -46,14 +42,30 @@ internal static class UsbDevice
                 try
                 {
                     Marshal.WriteInt32(detail, 8); // SP_DEVICE_INTERFACE_DETAIL_DATA_W on x64
-                    if (!SetupDiGetDeviceInterfaceDetailW(set, ref data, detail, bytes, out _, IntPtr.Zero))
+                    var device = new DeviceInfoData { Size = Marshal.SizeOf<DeviceInfoData>() };
+                    if (!GetDeviceInterfaceDetailWithInfo(set, ref data, detail, bytes, out _, ref device))
                         throw NativeError("Не удалось получить путь USB");
-                    paths.Add(Marshal.PtrToStringUni(detail + 4)!);
+                    string path = Marshal.PtrToStringUni(detail + 4)!;
+                    paths.Add(path);
+                    if (descriptions is not null && UsbProfiles.ReadId(path) is not null)
+                        descriptions[path] = ReadDescription(set, ref device, path);
                 }
                 finally { Marshal.FreeHGlobal(detail); }
             }
         }
         finally { SetupDiDestroyDeviceInfoList(set); }
+    }
+
+    private static string? ReadDescription(IntPtr set, ref DeviceInfoData device, string path)
+    {
+        var buffer = new byte[512];
+        if (!SetupDiGetDeviceRegistryPropertyW(set, ref device, 0, out uint type, buffer, buffer.Length, out int size)
+            || type != 1 || size < 2 || size > buffer.Length) return null;
+        string value = System.Text.Encoding.Unicode.GetString(buffer, 0, size).TrimEnd('\0').Trim();
+        string? instance = path.Split('#').ElementAtOrDefault(2);
+        if (string.IsNullOrEmpty(value) || (!string.IsNullOrEmpty(instance)
+            && value.Contains(instance, StringComparison.OrdinalIgnoreCase))) return null;
+        return new string(value.Where(character => !char.IsControl(character)).Take(120).ToArray());
     }
 
     internal static bool Write(string path, byte[] packet, CancellationToken token, Func<bool>? mayWrite = null)
@@ -110,6 +122,15 @@ internal static class UsbDevice
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    private struct DeviceInfoData
+    {
+        public int Size;
+        public Guid Class;
+        public uint DeviceInstance;
+        public IntPtr Reserved;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     private struct OverlappedData
     {
         public IntPtr Internal, InternalHigh;
@@ -125,6 +146,12 @@ internal static class UsbDevice
     [DllImport("setupapi.dll", SetLastError = true)]
     private static extern bool SetupDiGetDeviceInterfaceDetailW(IntPtr set, ref InterfaceData data,
         IntPtr detail, int bytes, out int required, IntPtr device);
+    [DllImport("setupapi.dll", EntryPoint = "SetupDiGetDeviceInterfaceDetailW", SetLastError = true)]
+    private static extern bool GetDeviceInterfaceDetailWithInfo(IntPtr set, ref InterfaceData data,
+        IntPtr detail, int bytes, out int required, ref DeviceInfoData device);
+    [DllImport("setupapi.dll", SetLastError = true)]
+    private static extern bool SetupDiGetDeviceRegistryPropertyW(IntPtr set, ref DeviceInfoData device,
+        uint property, out uint type, [Out] byte[] buffer, int size, out int required);
     [DllImport("setupapi.dll")]
     private static extern bool SetupDiDestroyDeviceInfoList(IntPtr set);
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]

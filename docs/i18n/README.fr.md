@@ -6,7 +6,7 @@
 
 L’écran Panorama peut rester allumé après votre départ, alors que le moniteur principal s’est déjà éteint. Panorama Screen Monitor reste dans la zone de notification, éteint le rétroéclairage après une période d’inactivité et le rallume à votre retour.
 
-**Testé sur TRYX Panorama `391A:1011` avec KANALI 2.7.0.**
+**Testé sur TRYX Panorama `391A:1011` avec KANALI 2.7.0.** Les autres modèles USB sont pris en charge à titre expérimental. Les commandes restent indisponibles si la vérification de lecture échoue. [Compatibilité USB](README.en.md#usb-compatibility)
 
 Il y a environ six mois, j’ai demandé aux développeurs de KANALI d’ajouter l’extinction automatique du rétroéclairage en cas d’inactivité. La fonction manquait toujours au moment de préparer cette version, alors j’ai écrit cet utilitaire.
 
@@ -18,7 +18,7 @@ Il y a environ six mois, j’ai demandé aux développeurs de KANALI d’ajouter
 
 ## Démarrage rapide
 
-**Prérequis :** Windows x64, TRYX Panorama avec le périphérique USB RK PANO (`391A:1011`) et KANALI lancé normalement.
+**Prérequis :** Windows x64, un TRYX Panorama du [tableau de compatibilité USB](README.en.md#usb-compatibility) et KANALI lancé normalement.
 
 1. Téléchargez l’EXE ou le ZIP Windows x64 depuis la [dernière version](https://github.com/Viper029GH/PanoramaScreenMonitor/releases/latest). Décompressez le ZIP si vous l’avez choisi.
 2. Lancez l’EXE. Il est portable et intègre .NET. Si KANALI démarre plus tard, l’utilitaire l’attend automatiquement.
