@@ -1,0 +1,85 @@
+Свернуть|Minimize|Minimieren|Réduire|Minimizar|Minimizar|最小化|最小化
+Скрыть в трей|Hide to tray|In Infobereich ausblenden|Masquer dans la zone de notification|Ocultar en la bandeja|Ocultar na bandeja|隐藏到系统托盘|通知領域に隠す
+Открыть окно|Open window|Fenster öffnen|Ouvrir la fenêtre|Abrir ventana|Abrir janela|打开窗口|ウィンドウを開く
+Выйти|Exit|Beenden|Quitter|Salir|Sair|退出|終了
+УПРАВЛЕНИЕ|CONTROLS|STEUERUNG|COMMANDES|CONTROLES|CONTROLES|控制|操作
+Настройки|Settings|Einstellungen|Paramètres|Ajustes|Configurações|设置|設定
+ИМИТАЦИЯ|SIMULATION|SIMULATION|SIMULATION|SIMULACIÓN|SIMULAÇÃO|模拟|シミュレーション
+Включить экран|Turn screen on|Display einschalten|Allumer l’écran|Encender pantalla|Ligar tela|开启屏幕|画面をオンにする
+Выключить экран|Turn screen off|Display ausschalten|Éteindre l’écran|Apagar pantalla|Desligar tela|关闭屏幕|画面をオフにする
+Возобновить автоуправление|Resume automatic control|Automatik fortsetzen|Reprendre le mode automatique|Reanudar el control automático|Retomar o controle automático|恢复自动控制|自動制御を再開
+Пауза|Pause|Pause|Pause|Pausa|Pausa|暂停|一時停止
+Авто|Auto|Auto|Auto|Auto|Auto|自动|自動
+Ручной|Manual|Manuell|Manuel|Manual|Manual|手动|手動
+Яркость|Brightness|Helligkeit|Luminosité|Brillo|Brilho|亮度|明るさ
+Нет данных|No data|Keine Daten|Aucune donnée|Sin datos|Sem dados|无数据|データなし
+Состояние не подтверждено|State not confirmed|Status nicht bestätigt|État non confirmé|Estado sin confirmar|Estado não confirmado|状态未确认|状態未確認
+Экран включён|Screen is on|Display ist an|Écran allumé|Pantalla encendida|Tela ligada|屏幕已开启|画面オン
+Экран выключен|Screen is off|Display ist aus|Écran éteint|Pantalla apagada|Tela desligada|屏幕已关闭|画面オフ
+Применение яркости…|Applying brightness…|Helligkeit wird eingestellt…|Réglage de la luminosité…|Aplicando brillo…|Ajustando o brilho…|正在应用亮度…|明るさを適用中…
+Чтение диагностики…|Reading diagnostics…|Diagnosedaten werden gelesen…|Lecture des données de diagnostic…|Leyendo datos de diagnóstico…|Lendo dados de diagnóstico…|正在读取诊断信息…|診断情報を読み取り中…
+Подготовка к подключению…|Preparing to connect…|Verbindung wird vorbereitet…|Préparation de la connexion…|Preparando la conexión…|Preparando conexão…|正在准备连接…|接続を準備中…
+Ожидание запуска KANALI|Waiting for KANALI|Warten auf KANALI|Attente de KANALI|Esperando a KANALI|Aguardando o KANALI|正在等待 KANALI|KANALI の起動待ち
+Ожидание повторной проверки|Waiting to retry|Warten auf erneute Prüfung|Nouvelle vérification en attente|Esperando otro intento|Aguardando nova verificação|正在等待重试|再試行待ち
+Автоматические переходы приостановлены|Automatic control is paused|Automatik pausiert|Mode automatique en pause|Control automático en pausa|Controle automático em pausa|自动控制已暂停|自動制御を一時停止中
+Удержание выбранного состояния|Holding selected state|Gewählter Status wird beibehalten|État sélectionné maintenu|Manteniendo el estado elegido|Mantendo o estado selecionado|保持所选状态|選択した状態を維持中
+Тайм-аут Windows недоступен|Windows timeout unavailable|Windows-Zeitlimit nicht verfügbar|Délai Windows indisponible|Tiempo de espera de Windows no disponible|Tempo limite do Windows indisponível|无法获取 Windows 超时设置|Windows のタイムアウトを取得できません
+Автовыключение отключено в Windows|Windows display timeout is disabled|Windows schaltet das Display nicht automatisch aus|Extinction automatique désactivée dans Windows|Apagado automático desactivado en Windows|Desligamento automático desativado no Windows|Windows 已禁用自动关闭屏幕|Windows の画面自動オフは無効です
+Ожидание ввода|Waiting for input|Warten auf Eingabe|En attente d’une saisie|Esperando interacción|Aguardando interação|正在等待输入|入力待ち
+До выключения {0}|Turns off in {0}|Ausschalten in {0}|Extinction dans {0}|Se apaga en {0}|Desliga em {0}|{0} 后关闭屏幕|画面オフまで {0}
+Чтение состояния…|Reading screen state…|Displaystatus wird gelesen…|Lecture de l’état de l’écran…|Leyendo el estado de la pantalla…|Lendo o estado da tela…|正在读取屏幕状态…|画面の状態を読み取り中…
+Выполняется команда…|Applying command…|Befehl wird ausgeführt…|Exécution de la commande…|Ejecutando el comando…|Executando o comando…|正在执行命令…|コマンドを実行中…
+Подсветка подтверждена|Backlight state confirmed|Status der Beleuchtung bestätigt|État du rétroéclairage confirmé|Estado de la retroiluminación confirmado|Estado da iluminação confirmado|背光状态已确认|バックライトの状態を確認済み
+Использовать тайм-аут экрана Windows|Use Windows display timeout|Windows-Bildschirmtimeout verwenden|Utiliser le délai d’extinction de Windows|Usar el tiempo de espera de pantalla de Windows|Usar o tempo limite de tela do Windows|使用 Windows 屏幕超时设置|Windows の画面タイムアウトを使用
+Тайм-аут простоя|Idle timeout|Leerlaufzeit|Délai d’inactivité|Tiempo de inactividad|Tempo de inatividade|空闲超时|無操作タイムアウト
+Тайм-аут простоя, минут|Idle timeout in minutes|Leerlaufzeit in Minuten|Délai d’inactivité en minutes|Tiempo de inactividad en minutos|Tempo de inatividade em minutos|空闲超时（分钟）|無操作タイムアウト（分）
+мин|min|min|min|min|min|分钟|分
+Запускать вместе с Windows|Start with Windows|Mit Windows starten|Lancer au démarrage de Windows|Iniciar con Windows|Iniciar com o Windows|随 Windows 启动|Windows と同時に起動
+Запускать свёрнутым в трей|Start in the system tray|Im Infobereich starten|Démarrer dans la zone de notification|Iniciar en la bandeja del sistema|Iniciar na bandeja do sistema|启动时隐藏到系统托盘|通知領域に格納して起動
+Применится после сохранения|Applies after saving|Wird nach dem Speichern übernommen|S’applique après enregistrement|Se aplica al guardar|Aplica ao salvar|保存后生效|保存後に適用されます
+Тайм-аут Windows пока недоступен|Windows timeout is currently unavailable|Windows-Zeitlimit derzeit nicht verfügbar|Délai Windows actuellement indisponible|Tiempo de espera de Windows no disponible por ahora|Tempo limite do Windows indisponível no momento|暂时无法获取 Windows 超时设置|現在 Windows のタイムアウトを取得できません
+Windows · никогда не выключать|Windows · Never turn off|Windows · Nie ausschalten|Windows · Ne jamais éteindre|Windows · No apagar nunca|Windows · Nunca desligar|Windows · 从不关闭|Windows · オフにしない
+Windows · {0} мин|Windows · {0} min|Windows · {0} min|Windows · {0} min|Windows · {0} min|Windows · {0} min|Windows · {0} 分钟|Windows · {0} 分
+Windows · {0} с|Windows · {0} s|Windows · {0} s|Windows · {0} s|Windows · {0} s|Windows · {0} s|Windows · {0} 秒|Windows · {0} 秒
+Введите от 1 до 1440 минут|Enter 1 to 1440 minutes|1 bis 1440 Minuten eingeben|Saisissez de 1 à 1440 minutes|Introduce entre 1 y 1440 minutos|Digite de 1 a 1440 minutos|请输入 1 至 1440 分钟|1〜1440 分を入力してください
+Сохранить|Save|Speichern|Enregistrer|Guardar|Salvar|保存|保存
+Настройки сохранены|Settings saved|Einstellungen gespeichert|Paramètres enregistrés|Ajustes guardados|Configurações salvas|设置已保存|設定を保存しました
+Не удалось сохранить настройки|Could not save settings|Einstellungen konnten nicht gespeichert werden|Impossible d’enregistrer les paramètres|No se pudieron guardar los ajustes|Não foi possível salvar as configurações|无法保存设置|設定を保存できませんでした
+Язык|Language|Sprache|Langue|Idioma|Idioma|语言|言語
+Тема|Theme|Design|Thème|Tema|Tema|主题|テーマ
+Системная|System|System|Système|Sistema|Sistema|跟随系统|システム設定
+Тёмная|Dark|Dunkel|Sombre|Oscuro|Escuro|深色|ダーク
+Светлая|Light|Hell|Clair|Claro|Claro|浅色|ライト
+Диагностика устройства|Device diagnostics|Gerätediagnose|Diagnostic de l’appareil|Diagnóstico del dispositivo|Diagnóstico do dispositivo|设备诊断|デバイス診断
+Обновить|Refresh|Aktualisieren|Actualiser|Actualizar|Atualizar|刷新|更新
+USB подключено · UDB доступен|USB connected · UDB responding|USB verbunden · UDB antwortet|USB connecté · UDB répond|USB conectado · UDB responde|USB conectado · UDB responde|USB 已连接 · UDB 有响应|USB 接続済み · UDB 応答あり
+Нет ответа конфигурации|No configuration response|Keine Konfigurationsantwort|Aucune réponse de configuration|Sin respuesta de configuración|Sem resposta de configuração|未收到配置响应|設定情報の応答なし
+данные устарели|stale|veraltet|données anciennes|datos desactualizados|dados desatualizados|数据已过期|古いデータ
+Модель · {0}|Model · {0}|Modell · {0}|Modèle · {0}|Modelo · {0}|Modelo · {0}|型号 · {0}|モデル · {0}
+Прошивка · {0}|Firmware · {0}|Firmware · {0}|Micrologiciel · {0}|Firmware · {0}|Firmware · {0}|固件 · {0}|ファームウェア · {0}
+Версия ПО экрана · {0}|Screen software · {0}|Displaysoftware · {0}|Logiciel de l’écran · {0}|Software de pantalla · {0}|Software da tela · {0}|屏幕软件 · {0}|画面ソフトウェア · {0}
+ОС экрана · {0}|Screen OS · {0}|Display-Betriebssystem · {0}|Système de l’écran · {0}|SO de pantalla · {0}|SO da tela · {0}|屏幕操作系统 · {0}|画面 OS · {0}
+Экран и яркость · {0}|Screen and brightness · {0}|Display und Helligkeit · {0}|Écran et luminosité · {0}|Pantalla y brillo · {0}|Tela e brilho · {0}|屏幕与亮度 · {0}|画面と明るさ · {0}
+Последнее чтение · {0}|Last read · {0}|Zuletzt gelesen · {0}|Dernière lecture · {0}|Última lectura · {0}|Última leitura · {0}|最后读取 · {0}|最終読み取り · {0}
+Не удалось прочитать диагностику|Could not read device diagnostics|Gerätediagnose konnte nicht gelesen werden|Impossible de lire le diagnostic de l’appareil|No se pudo leer el diagnóstico del dispositivo|Não foi possível ler o diagnóstico do dispositivo|无法读取设备诊断信息|デバイス診断を読み取れませんでした
+Ошибка связи с устройством|Device communication error|Fehler bei der Gerätekommunikation|Erreur de communication avec l’appareil|Error de comunicación con el dispositivo|Erro de comunicação com o dispositivo|设备通信错误|デバイスとの通信エラー
+Не удалось подтвердить яркость|Could not confirm brightness|Helligkeit konnte nicht bestätigt werden|Impossible de confirmer la luminosité|No se pudo confirmar el brillo|Não foi possível confirmar o brilho|无法确认亮度|明るさを確認できませんでした
+Яркость можно изменить только при включённом экране.|Brightness can only be adjusted while the screen is on.|Die Helligkeit lässt sich nur bei eingeschaltetem Display ändern.|La luminosité se règle quand l’écran est allumé.|El brillo solo se puede ajustar con la pantalla encendida.|O brilho só pode ser ajustado com a tela ligada.|仅可在屏幕开启时调整亮度。|明るさは画面がオンのときに変更できます。
+Чтение UDB не подтвердило выбранную яркость и состояние экрана.|UDB did not confirm the selected brightness and screen state.|UDB hat Helligkeit und Displaystatus nicht bestätigt.|UDB n’a pas confirmé la luminosité et l’état de l’écran.|UDB no confirmó el brillo ni el estado de la pantalla.|O UDB não confirmou o brilho nem o estado da tela.|UDB 未确认所选亮度和屏幕状态。|選択した明るさと画面の状態を UDB で確認できませんでした。
+Устройство RK PANO (391A:1011) не найдено.|RK PANO (391A:1011) was not found.|RK PANO (391A:1011) wurde nicht gefunden.|RK PANO (391A:1011) introuvable.|No se encontró RK PANO (391A:1011).|RK PANO (391A:1011) não encontrado.|未找到 RK PANO (391A:1011)。|RK PANO (391A:1011) が見つかりません。
+UDB не подтвердил команду за 2,5 с.|UDB did not confirm the command within 2.5 s.|UDB hat den Befehl nicht innerhalb von 2,5 s bestätigt.|UDB n’a pas confirmé la commande en 2,5 s.|UDB no confirmó el comando en 2,5 s.|O UDB não confirmou o comando em 2,5 s.|UDB 未在 2.5 秒内确认命令。|UDB が 2.5 秒以内にコマンドを確認しませんでした。
+Деморежим · имитация RK PANO|Demo mode · simulated RK PANO|Demomodus · simuliertes RK PANO|Mode démo · RK PANO simulé|Modo demo · RK PANO simulado|Modo demo · RK PANO simulado|演示模式 · 模拟 RK PANO|デモモード · RK PANO のシミュレーション
+Имитировать простой|Simulate idle|Leerlauf simulieren|Simuler l’inactivité|Simular inactividad|Simular inatividade|模拟空闲|無操作をシミュレート
+Имитировать ввод|Simulate input|Eingabe simulieren|Simuler une saisie|Simular interacción|Simular interação|模拟输入|入力をシミュレート
+Медленная команда|Slow command|Langsamer Befehl|Commande lente|Comando lento|Comando lento|慢速命令|遅いコマンド
+Ошибка ACK при успешной записи|ACK error after successful write|ACK-Fehler trotz erfolgreichem Schreiben|Erreur ACK après écriture réussie|Error ACK tras una escritura correcta|Erro de ACK após gravação bem-sucedida|写入成功后返回 ACK 错误|書き込み成功時の ACK エラー
+Тайм-аут подтверждения яркости|Brightness confirmation timeout|Zeitlimit der Helligkeitsprüfung|Délai de confirmation de la luminosité|Tiempo de espera de confirmación del brillo|Tempo limite de confirmação do brilho|亮度确认超时|明るさ確認のタイムアウト
+Тайм-аут следующей операции|Time out next operation|Nächsten Vorgang abbrechen|Simuler l’expiration suivante|Simular espera agotada en la próxima operación|Simular tempo limite na próxima operação|下次操作超时|次の操作をタイムアウト
+Демо: чтение после записи яркости не подтвердилось.|Demo: brightness readback timed out.|Demo: Zeitlimit beim Zurücklesen der Helligkeit.|Démo : délai dépassé lors de la relecture de la luminosité.|Demo: se agotó el tiempo al leer el brillo tras el cambio.|Demo: tempo esgotado ao ler o brilho após a alteração.|演示：写入亮度后的回读超时。|デモ：書き込み後の明るさ確認がタイムアウトしました。
+Демо: имитация тайм-аута ответа UDB.|Demo: simulated UDB response timeout.|Demo: simuliertes UDB-Antwortzeitlimit.|Démo : délai de réponse UDB simulé.|Demo: tiempo de respuesta de UDB agotado.|Demo: tempo de resposta do UDB esgotado.|演示：模拟 UDB 响应超时。|デモ：UDB 応答のタイムアウトをシミュレートしました。
+Интерфейс USB недоступен|USB interface unavailable|USB-Schnittstelle nicht verfügbar|Interface USB indisponible|Interfaz USB no disponible|Interface USB indisponível|USB 接口不可用|USB インターフェイスを利用できません
+Сработает при следующем изменении яркости|Applies to the next brightness change|Gilt für die nächste Helligkeitsänderung|S’applique au prochain réglage de la luminosité|Se aplica al próximo cambio de brillo|Aplica à próxima alteração de brilho|将在下次更改亮度时生效|次の明るさ変更に適用されます
+UDB сообщил work_config convert failed. Состояние подтверждено чтением.|UDB reported work_config convert failed. Readback confirmed the change.|UDB meldete work_config convert failed. Die Rücklesung bestätigte die Änderung.|UDB a signalé work_config convert failed. La relecture a confirmé le changement.|UDB indicó work_config convert failed. La lectura confirmó el cambio.|O UDB informou work_config convert failed. A leitura confirmou a alteração.|UDB 报告 work_config convert failed。回读已确认更改。|UDB が work_config convert failed を報告しました。読み取りで変更を確認しました。
+UDB вернул ошибку записи. Состояние подтверждено чтением.|UDB reported a write error. Readback confirmed the change.|UDB meldete einen Schreibfehler. Die Rücklesung bestätigte die Änderung.|UDB a signalé une erreur d’écriture. La relecture a confirmé le changement.|UDB informó de un error de escritura. La lectura confirmó el cambio.|O UDB informou um erro de gravação. A leitura confirmou a alteração.|UDB 报告写入错误。回读已确认更改。|UDB が書き込みエラーを報告しました。読み取りで変更を確認しました。
+Найдено несколько интерфейсов RK PANO (391A:1011).|Multiple RK PANO (391A:1011) interfaces were found.|Mehrere RK PANO (391A:1011)-Schnittstellen gefunden.|Plusieurs interfaces RK PANO (391A:1011) ont été trouvées.|Se encontraron varias interfaces RK PANO (391A:1011).|Foram encontradas várias interfaces RK PANO (391A:1011).|检测到多个 RK PANO (391A:1011) 接口。|複数の RK PANO (391A:1011) インターフェイスが見つかりました。
+Обнаружено другое устройство TRYX. Поддерживается RK PANO (391A:1011).|A different TRYX device was found. Supported model: RK PANO (391A:1011).|Ein anderes TRYX-Gerät wurde gefunden. Unterstütztes Modell: RK PANO (391A:1011).|Un autre appareil TRYX a été détecté. Modèle pris en charge : RK PANO (391A:1011).|Se detectó otro dispositivo TRYX. Modelo compatible: RK PANO (391A:1011).|Outro dispositivo TRYX foi detectado. Modelo compatível: RK PANO (391A:1011).|检测到其他 TRYX 设备。支持型号：RK PANO (391A:1011)。|別の TRYX デバイスが見つかりました。対応機種は RK PANO (391A:1011) です。

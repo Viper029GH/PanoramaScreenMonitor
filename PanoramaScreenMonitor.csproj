@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType>none</DebugType>
+    <ApplicationIcon>Panorama.ico</ApplicationIcon>
+    <Version>0.1.0</Version>
+    <Product>Panorama Screen Monitor</Product>
+    <Description>Управление подсветкой экрана TRYX Panorama в Windows.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <Resource Include="Panorama.ico" />
+    <EmbeddedResource Include="Translations.txt" />
+  </ItemGroup>
+</Project>

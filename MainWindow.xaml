@@ -1,0 +1,322 @@
+<Window x:Class="PanoramaScreenMonitor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Panorama Screen Monitor" Width="476" SizeToContent="Height"
+        MaxHeight="{Binding Source={x:Static SystemParameters.WorkArea}, Path=Height}"
+        ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource ThemeWindow}" Foreground="{DynamicResource ThemeForeground}" FontFamily="Segoe UI"
+        Icon="Panorama.ico" FontSize="14" UseLayoutRounding="True">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="42" GlassFrameThickness="0" ResizeBorderThickness="0"
+                      CornerRadius="0" UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+    <Window.Resources>
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource ThemeCard}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ThemeLine}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="16,14"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+        <Style x:Key="Section" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource ThemeMuted}"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="MinHeight" Value="32"/>
+            <Setter Property="Padding" Value="12,4"/>
+            <Setter Property="Background" Value="{DynamicResource ThemeButton}"/>
+            <Setter Property="Foreground" Value="{DynamicResource ThemeForeground}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorder}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Surface" CornerRadius="6" BorderThickness="1" Padding="{TemplateBinding Padding}"
+                                BorderBrush="{TemplateBinding BorderBrush}" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Surface" Property="Background" Value="{DynamicResource ThemeHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Surface" Property="Background" Value="{DynamicResource ThemePressed}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Surface" Property="BorderBrush" Value="{DynamicResource ThemeAccent}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Surface" Property="Opacity" Value="0.52"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{DynamicResource ThemeForeground}"/>
+            <Setter Property="Margin" Value="0,6,0,3"/>
+        </Style>
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="Foreground" Value="{DynamicResource ThemeForeground}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="Row" Background="Transparent" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="Row" Property="Background" Value="{DynamicResource ThemeHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource ThemeAccent}"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Foreground" Value="{DynamicResource ThemeForeground}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton Focusable="False" ClickMode="Press"
+                                          IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border CornerRadius="5" Background="{DynamicResource ThemeInput}"
+                                                BorderBrush="{DynamicResource ThemeBorder}" BorderThickness="1"/>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <DockPanel Margin="9,4" IsHitTestVisible="False">
+                                <Path DockPanel.Dock="Right" Data="M 0 0 L 4 4 L 8 0" StrokeThickness="1.4"
+                                      Stroke="{DynamicResource ThemeMuted}" VerticalAlignment="Center"/>
+                                <ContentPresenter Content="{TemplateBinding SelectionBoxItem}"
+                                                  ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                                  VerticalAlignment="Center"/>
+                            </DockPanel>
+                            <Border x:Name="FocusRing" CornerRadius="5" IsHitTestVisible="False" BorderThickness="1"/>
+                            <Popup x:Name="PART_Popup" Placement="Bottom" AllowsTransparency="True"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}">
+                                <Border MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                                        MaxHeight="{TemplateBinding MaxDropDownHeight}" CornerRadius="5"
+                                        Background="{DynamicResource ThemeCard}" BorderBrush="{DynamicResource ThemeBorder}"
+                                        BorderThickness="1" Padding="2">
+                                    <ScrollViewer CanContentScroll="True" VerticalScrollBarVisibility="Auto">
+                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                <Setter TargetName="FocusRing" Property="BorderBrush" Value="{DynamicResource ThemeAccent}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <ControlTemplate x:Key="SliderFill" TargetType="RepeatButton">
+            <Border Background="{DynamicResource ThemeAccent}" Height="4" VerticalAlignment="Center" CornerRadius="2"/>
+        </ControlTemplate>
+        <ControlTemplate x:Key="SliderRemainder" TargetType="RepeatButton">
+            <Border Background="{DynamicResource ThemeBorder}" Height="4" VerticalAlignment="Center" CornerRadius="2"/>
+        </ControlTemplate>
+        <Style TargetType="Slider">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid x:Name="SliderSurface" Height="23" Background="Transparent">
+                            <Track x:Name="PART_Track" Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}"
+                                   Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Focusable="False" Command="{x:Static Slider.DecreaseLarge}"
+                                                  Template="{StaticResource SliderFill}"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Focusable="False" Command="{x:Static Slider.IncreaseLarge}"
+                                                  Template="{StaticResource SliderRemainder}"/>
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Width="16" Height="16">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Ellipse Fill="{DynamicResource ThemeAccent}" StrokeThickness="2"
+                                                         Stroke="{DynamicResource ThemeCard}"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                            <Border x:Name="SliderFocus" CornerRadius="5" BorderThickness="1" IsHitTestVisible="False"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="SliderFocus" Property="BorderBrush" Value="{DynamicResource ThemeAccent}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="SliderSurface" Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <Border BorderBrush="{DynamicResource ThemeLine}" BorderThickness="1">
+        <DockPanel>
+            <Border DockPanel.Dock="Top" Background="{DynamicResource ThemeTitle}" BorderBrush="{DynamicResource ThemeLine}" BorderThickness="0,0,0,1" Height="42">
+                <DockPanel LastChildFill="True">
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,4,5,4"
+                                WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Button Width="36" Padding="0" Content="—" Click="Minimize" ToolTip="Свернуть"
+                                AutomationProperties.Name="Свернуть" Margin="0,0,4,0"/>
+                        <Button Width="36" Padding="0" Content="×" FontSize="18" Click="HideWindow" ToolTip="Скрыть в трей"
+                                AutomationProperties.Name="Скрыть в трей"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="14,0,0,0" VerticalAlignment="Center">
+                        <Image Source="Panorama.ico" Width="19" Height="19" Margin="0,0,9,0"/>
+                        <TextBlock Text="Panorama Screen Monitor" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Margin="14,14,14,4">
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <DockPanel Margin="0,0,0,13">
+                                <Border DockPanel.Dock="Right" CornerRadius="5" Padding="9,3" Background="{DynamicResource ThemeBadge}">
+                                    <TextBlock x:Name="ModeText" Foreground="{DynamicResource ThemeAccent}" FontSize="12"
+                                               FontWeight="SemiBold"/>
+                                </Border>
+                                <TextBlock x:Name="Device" VerticalAlignment="Center" Foreground="{DynamicResource ThemeMuted}"/>
+                            </DockPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="36" Height="36" Background="{DynamicResource ThemeTile}" CornerRadius="7" Margin="0,0,11,0">
+                                    <TextBlock x:Name="StateIcon" FontFamily="Segoe MDL2 Assets" FontSize="18"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock x:Name="ScreenState" VerticalAlignment="Center" FontWeight="SemiBold"
+                                           AutomationProperties.LiveSetting="Polite" FontSize="23"/>
+                            </StackPanel>
+                            <TextBlock x:Name="Activity" Foreground="{DynamicResource ThemeMuted}" Margin="0,11,0,0"/>
+                            <TextBlock x:Name="Issue" Foreground="{DynamicResource ThemeDanger}" Margin="0,7,0,0" TextWrapping="Wrap"
+                                       AutomationProperties.LiveSetting="Polite"/>
+                            <Border BorderBrush="{DynamicResource ThemeLine}" BorderThickness="0,1,0,0" Margin="0,13,0,0" Padding="0,9,0,0">
+                                <StackPanel>
+                                    <DockPanel>
+                                        <TextBlock x:Name="BrightnessValue" DockPanel.Dock="Right" Foreground="{DynamicResource ThemeAccent}"
+                                                   FontWeight="SemiBold" Margin="8,0,0,0"/>
+                                        <TextBlock Text="Яркость" FontWeight="SemiBold"/>
+                                    </DockPanel>
+                                    <Slider x:Name="BrightnessSlider" Minimum="0" Maximum="100" TickFrequency="1"
+                                            IsSnapToTickEnabled="True" SmallChange="1" LargeChange="10" Margin="0,5,0,0"
+                                            IsMoveToPointEnabled="True" IsEnabled="False" AutomationProperties.Name="Яркость"
+                                            ValueChanged="BrightnessChanged" PreviewMouseLeftButtonDown="BrightnessMouseDown"
+                                            PreviewMouseLeftButtonUp="BrightnessMouseUp" LostMouseCapture="BrightnessCaptureLost"
+                                            PreviewKeyDown="BrightnessKeyDown" PreviewKeyUp="BrightnessKeyUp"
+                                            LostKeyboardFocus="BrightnessFocusLost"/>
+                                    <TextBlock x:Name="BrightnessError" Foreground="{DynamicResource ThemeDanger}" TextWrapping="Wrap"
+                                               AutomationProperties.LiveSetting="Polite" Visibility="Collapsed"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Section}" Text="УПРАВЛЕНИЕ"/>
+                            <UniformGrid Columns="2">
+                                <Button x:Name="OnButton" Content="Включить экран" Click="SetOn" Margin="0,0,4,0"
+                                        Background="{DynamicResource ThemePrimary}" BorderBrush="{DynamicResource ThemePrimaryLine}"/>
+                                <Button x:Name="OffButton" Content="Выключить экран" Click="SetOff" Margin="4,0,0,0"/>
+                            </UniformGrid>
+                            <Button x:Name="AutoButton" Content="Пауза" Click="ToggleAuto" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}">
+                        <Expander x:Name="SettingsExpander" Header="Настройки" IsExpanded="False"
+                                  Foreground="{DynamicResource ThemeForeground}">
+                            <StackPanel Margin="0,9,0,0">
+                                <CheckBox x:Name="SyncWindowsCheck" Content="Использовать тайм-аут экрана Windows"
+                                          Checked="SyncWindowsChanged" Unchecked="SyncWindowsChanged"/>
+                                <DockPanel x:Name="ManualTimeoutRow" Margin="0,7,0,6">
+                                    <TextBlock DockPanel.Dock="Right" Text="мин" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource ThemeMuted}" Margin="8,0,0,0"/>
+                                    <TextBox x:Name="MinutesBox" DockPanel.Dock="Right" Width="66" MaxLength="4"
+                                             AutomationProperties.Name="Тайм-аут простоя, минут"
+                                             TextAlignment="Right" Padding="7,4" Background="{DynamicResource ThemeInput}" Foreground="{DynamicResource ThemeForeground}"
+                                             CaretBrush="{DynamicResource ThemeAccent}" BorderBrush="{DynamicResource ThemeInputLine}"/>
+                                    <TextBlock Text="Тайм-аут простоя" VerticalAlignment="Center"/>
+                                </DockPanel>
+                                <TextBlock x:Name="WindowsTimeoutText" Visibility="Collapsed" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource ThemeMuted}" Margin="0,4,0,6"/>
+                                <CheckBox x:Name="RunCheck" Content="Запускать вместе с Windows"/>
+                                <CheckBox x:Name="TrayCheck" Content="Запускать свёрнутым в трей"/>
+                                <Grid Margin="0,9,0,0">
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                    <StackPanel Margin="0,0,4,0">
+                                        <TextBlock Text="Язык" Margin="0,0,0,3"/>
+                                        <ComboBox x:Name="LanguageBox" AutomationProperties.Name="Язык" MinHeight="26"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Margin="4,0,0,0">
+                                        <TextBlock Text="Тема" Margin="0,0,0,3"/>
+                                        <ComboBox x:Name="ThemeBox" AutomationProperties.Name="Тема" MinHeight="26"/>
+                                    </StackPanel>
+                                </Grid>
+                                <DockPanel Margin="0,10,0,0">
+                                    <Button x:Name="SaveButton" DockPanel.Dock="Right" Content="Сохранить" Click="Save"/>
+                                    <TextBlock x:Name="Saved" VerticalAlignment="Center" TextWrapping="Wrap"
+                                               Foreground="{DynamicResource ThemeMuted}" Margin="0,0,8,0"/>
+                                </DockPanel>
+                            </StackPanel>
+                        </Expander>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}">
+                        <Expander x:Name="Diagnostics" Header="Диагностика устройства" Foreground="{DynamicResource ThemeForeground}">
+                            <StackPanel Margin="0,9,0,0">
+                                <DockPanel>
+                                    <Button x:Name="RefreshDevice" DockPanel.Dock="Right" Content="Обновить"
+                                            Click="RefreshDiagnostics" Margin="8,0,0,0"/>
+                                    <TextBlock x:Name="ConnectionText" VerticalAlignment="Center" TextWrapping="Wrap"
+                                               Foreground="{DynamicResource ThemeAccent}"/>
+                                </DockPanel>
+                                <TextBlock x:Name="DeviceDetails" Margin="0,7,0,0" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="DeviceNotice" Foreground="{DynamicResource ThemeDanger}" Margin="0,7,0,0"
+                                           TextWrapping="Wrap" Visibility="Collapsed"/>
+                            </StackPanel>
+                        </Expander>
+                    </Border>
+
+                    <Border x:Name="DemoPanel" Style="{StaticResource Card}" Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Section}" Text="ИМИТАЦИЯ"/>
+                            <UniformGrid Columns="2">
+                                <Button Content="Имитировать простой" Click="SimulateIdle" Margin="0,0,4,0"/>
+                                <Button Content="Имитировать ввод" Click="SimulateInput" Margin="4,0,0,0"/>
+                            </UniformGrid>
+                            <CheckBox Content="Медленная команда" Checked="DemoSlow" Unchecked="DemoSlow"/>
+                            <CheckBox Content="Ошибка ACK при успешной записи" Checked="DemoAck" Unchecked="DemoAck"/>
+                            <Button Content="Тайм-аут подтверждения яркости" Click="DemoBrightnessTimeout" Margin="0,6,0,0"/>
+                            <Button Content="Тайм-аут следующей операции" Click="DemoTimeout" Margin="0,6,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+    </Border>
+</Window>
