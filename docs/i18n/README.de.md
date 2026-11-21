@@ -13,7 +13,7 @@ Vor etwa einem halben Jahr bat ich die KANALI-Entwickler darum, die Hintergrundb
 [Download für Windows x64](https://github.com/Viper029GH/PanoramaScreenMonitor/releases/latest) · [Changelog](../../CHANGELOG.md) · [CC0 1.0](../../LICENSE)
 
 <p align="center">
-  <img src="../images/panorama-demo.png" alt="Panorama Screen Monitor im Demomodus" width="420">
+  <img src="../images/panorama-demo.de.png" alt="Panorama Screen Monitor im Demomodus" width="420">
 </p>
 
 ## Erste Schritte

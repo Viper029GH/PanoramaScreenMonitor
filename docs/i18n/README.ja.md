@@ -13,7 +13,7 @@
 [Windows x64 版をダウンロード](https://github.com/Viper029GH/PanoramaScreenMonitor/releases/latest) · [Changelog](../../CHANGELOG.md) · [CC0 1.0](../../LICENSE)
 
 <p align="center">
-  <img src="../images/panorama-demo.png" alt="デモモードの Panorama Screen Monitor" width="420">
+  <img src="../images/panorama-demo.ja.png" alt="デモモードの Panorama Screen Monitor" width="420">
 </p>
 
 ## クイックスタート

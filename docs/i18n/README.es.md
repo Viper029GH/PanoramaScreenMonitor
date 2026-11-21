@@ -13,7 +13,7 @@ Hace unos seis meses pedí a los desarrolladores de KANALI que añadieran el apa
 [Descargar para Windows x64](https://github.com/Viper029GH/PanoramaScreenMonitor/releases/latest) · [Changelog](../../CHANGELOG.md) · [CC0 1.0](../../LICENSE)
 
 <p align="center">
-  <img src="../images/panorama-demo.png" alt="Panorama Screen Monitor en modo demo" width="420">
+  <img src="../images/panorama-demo.es.png" alt="Panorama Screen Monitor en modo demo" width="420">
 </p>
 
 ## Inicio rápido

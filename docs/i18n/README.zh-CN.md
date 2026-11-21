@@ -13,7 +13,7 @@
 [下载 Windows x64 版](https://github.com/Viper029GH/PanoramaScreenMonitor/releases/latest) · [Changelog](../../CHANGELOG.md) · [CC0 1.0](../../LICENSE)
 
 <p align="center">
-  <img src="../images/panorama-demo.png" alt="演示模式下的 Panorama Screen Monitor" width="420">
+  <img src="../images/panorama-demo.zh-CN.png" alt="演示模式下的 Panorama Screen Monitor" width="420">
 </p>
 
 ## 快速开始
