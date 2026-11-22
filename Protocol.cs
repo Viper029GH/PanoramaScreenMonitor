@@ -114,13 +114,16 @@ internal static class Protocol
                 }
                 else if (!scalar.Quoted && type.Contains('|'))
                 {
-                    // KANALI's UDB log and the wire schema use different symbolic names.
-                    string enumName = (name, key, scalar.Text) switch
+                    // These values are defined by the LoopMode descriptor in KANALI's UDB.
+                    int label = (name, key, scalar.Text) switch
                     {
-                        ("work_config", "loop_mode", "LoopMode_MediaAll") => "LOOP_ALL",
-                        _ => scalar.Text
+                        ("work_config", "loop_mode", "LoopMode_Single") => 0,
+                        ("work_config", "loop_mode", "LoopMode_MediaAll") => 1,
+                        ("work_config", "loop_mode", "LoopMode_MediaRand") => 2,
+                        ("work_config", "loop_mode", "LoopMode_PresetAll") => 3,
+                        ("work_config", "loop_mode", "LoopMode_PresetRand") => 4,
+                        _ => Array.IndexOf(type.Split('|'), scalar.Text)
                     };
-                    int label = Array.IndexOf(type.Split('|'), enumName);
                     if (label >= 0) Number(body, index + 1, (uint)label);
                     else if (int.TryParse(scalar.Text, NumberStyles.AllowLeadingSign,
                         CultureInfo.InvariantCulture, out int numeric))

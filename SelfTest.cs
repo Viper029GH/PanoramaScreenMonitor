@@ -145,23 +145,28 @@ internal static class SelfTest
             byte[] encoded = Protocol.Configuration(off, true);
             Require(Convert.ToHexString(encoded) == "1A051A034120422A0810501801205A0801", "Full configuration preserved");
             var kanali = Protocol.Parse("""
-                work_config {
-                  loop_mode: LoopMode_MediaAll
-                  single_mode_media_file: "A"
-                }
-                display_config {
-                  backlight_enable: true
-                  backlight_brightness: 80
-                }
-                """);
-            Require(kanali is not null, "KANALI MediaAll log value parsed");
-            Require(PanoramaTransport.Assess(UsbProfiles.All[0], null, kanali).CanControl,
-                "KANALI MediaAll no longer blocks the 1011 read-only check");
-            Require(Convert.ToHexString(Protocol.Configuration(kanali!, false)) == "1A0510011A01412A021050",
-                "Power change preserves MediaAll as wire enum 1 and leaves media and brightness intact");
-            Require(Convert.ToHexString(Protocol.Configuration(kanali!, null, 40)) == "1A0510011A01412A0408011028",
-                "Brightness change preserves MediaAll and backlight power");
-            kanali!.Child("work_config")!["loop_mode"] = new Protocol.Scalar("LoopMode_Unknown", false);
+                work_config { single_mode_media_file: "A" }
+                display_config { backlight_enable: true backlight_brightness: 80 }
+                """)!;
+            Require(Convert.ToHexString(Protocol.Configuration(kanali, false)) == "1A031A01412A021050",
+                "Power change preserves omitted default playback mode");
+            var work = kanali.Child("work_config")!;
+            foreach (var (name, value) in new (string, byte)[]
+            {
+                ("LoopMode_Single", 0), ("LoopMode_MediaAll", 1), ("LoopMode_MediaRand", 2),
+                ("LoopMode_PresetAll", 3), ("LoopMode_PresetRand", 4), ("7", 7)
+            })
+            {
+                work["loop_mode"] = new Protocol.Scalar(name, false);
+                Require(PanoramaTransport.Assess(UsbProfiles.All[0], null, kanali).CanControl,
+                    $"Playback mode {name} passes the 1011 read-only check");
+                string preservedWork = $"1A051A014110{value:X2}";
+                Require(Convert.ToHexString(Protocol.Configuration(kanali, false)) == preservedWork + "2A021050",
+                    $"Power change preserves playback mode {name} and brightness");
+                Require(Convert.ToHexString(Protocol.Configuration(kanali, null, 40)) == preservedWork + "2A0408011028",
+                    $"Brightness change preserves playback mode {name} and backlight power");
+            }
+            work["loop_mode"] = new Protocol.Scalar("LoopMode_Unknown", false);
             var rejectedLoop = PanoramaTransport.Assess(UsbProfiles.All[0], null, kanali);
             Require(!rejectedLoop.CanControl && rejectedLoop.BlockReason?.Contains("LoopMode_Unknown") == true,
                 "Unrecognized playback mode still prevents a write and is reported");
