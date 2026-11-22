@@ -144,6 +144,27 @@ internal static class SelfTest
             Require(!Protocol.Backlight(off), "Missing backlight defaults to false in display block");
             byte[] encoded = Protocol.Configuration(off, true);
             Require(Convert.ToHexString(encoded) == "1A051A034120422A0810501801205A0801", "Full configuration preserved");
+            var kanali = Protocol.Parse("""
+                work_config {
+                  loop_mode: LoopMode_MediaAll
+                  single_mode_media_file: "A"
+                }
+                display_config {
+                  backlight_enable: true
+                  backlight_brightness: 80
+                }
+                """);
+            Require(kanali is not null, "KANALI MediaAll log value parsed");
+            Require(PanoramaTransport.Assess(UsbProfiles.All[0], null, kanali).CanControl,
+                "KANALI MediaAll no longer blocks the 1011 read-only check");
+            Require(Convert.ToHexString(Protocol.Configuration(kanali!, false)) == "1A0510011A01412A021050",
+                "Power change preserves MediaAll as wire enum 1 and leaves media and brightness intact");
+            Require(Convert.ToHexString(Protocol.Configuration(kanali!, null, 40)) == "1A0510011A01412A0408011028",
+                "Brightness change preserves MediaAll and backlight power");
+            kanali!.Child("work_config")!["loop_mode"] = new Protocol.Scalar("LoopMode_Unknown", false);
+            var rejectedLoop = PanoramaTransport.Assess(UsbProfiles.All[0], null, kanali);
+            Require(!rejectedLoop.CanControl && rejectedLoop.BlockReason?.Contains("LoopMode_Unknown") == true,
+                "Unrecognized playback mode still prevents a write and is reported");
             Require(Convert.ToHexString(Protocol.Frame(42, 104, [])) == "54525958090000000A040801102AC20600", "Wire frame");
             Require(Protocol.Brightness(off) == 80, "Read current brightness");
             var on = Protocol.Parse("display_config { backlight_enable: true backlight_brightness: 80 mirror: true }")!;

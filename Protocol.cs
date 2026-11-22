@@ -114,12 +114,18 @@ internal static class Protocol
                 }
                 else if (!scalar.Quoted && type.Contains('|'))
                 {
-                    int label = Array.IndexOf(type.Split('|'), scalar.Text);
+                    // KANALI's UDB log and the wire schema use different symbolic names.
+                    string enumName = (name, key, scalar.Text) switch
+                    {
+                        ("work_config", "loop_mode", "LoopMode_MediaAll") => "LOOP_ALL",
+                        _ => scalar.Text
+                    };
+                    int label = Array.IndexOf(type.Split('|'), enumName);
                     if (label >= 0) Number(body, index + 1, (uint)label);
                     else if (int.TryParse(scalar.Text, NumberStyles.AllowLeadingSign,
                         CultureInfo.InvariantCulture, out int numeric))
                         Number(body, index + 1, unchecked((ulong)(long)numeric));
-                    else throw new IOException($"Неизвестное значение {name}.{key}. Запись отменена.");
+                    else throw new IOException($"Неизвестное значение {name}.{key}: «{scalar.Text[..Math.Min(64, scalar.Text.Length)]}». Запись отменена.");
                 }
                 else throw new IOException($"Неподдерживаемый формат {name}.{key}. Запись отменена.");
             }
